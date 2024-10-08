@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = ["src/router_core", "src/router_bin"]
+
+[package]
+name = "cascade"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cascade"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"] }
+router_core = { path = "src/router_core" }

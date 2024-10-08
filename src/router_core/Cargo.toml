@@ -1,0 +1,24 @@
+[package]
+name = "router_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+polars = { version = "0.43.1", default-features = false, features = [
+    "rows",
+    "cross_join",
+    "csv",
+] }
+petgraph = "0.6.5"
+petgraph-graphml = "3.1.0"
+geo = "0.28.0"
+rstar = "0.12.0"
+thiserror = "1.0.63"
+osm4routing = "0.7.0"
+ahash = "0.8.11"
+pyo3 = { version = "0.22.3", features = ["extension-module"] }
+
+[dev-dependencies]
+approx = "0.5.1"
+
+
