@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
-members = ["src/router_core", "src/router_bin"]
+members = ["src/cascade-core"]
+exclude = ["cascade-bin"]
 
 [package]
 name = "cascade"
@@ -14,4 +15,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
-router_core = { path = "src/router_core" }
+router_core = { path = "src/cascade-core" }

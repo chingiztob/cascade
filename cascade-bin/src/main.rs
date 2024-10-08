@@ -4,7 +4,7 @@ use geo::Point;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     //let gtfs_path = get_user_input().unwrap();
-    let gtfs_path = "src/files/Saint_Petersburg";
+    let gtfs_path = "files/Saint_Petersburg";
     let edgelist_path = "/home/chingiz/Rust/osm/roads_SZ.pbf";
 
     let feed_args = FeedArgs {
