@@ -1714,7 +1714,6 @@ dependencies = [
  "petgraph",
  "petgraph-graphml",
  "polars",
- "pyo3",
  "rstar",
  "thiserror",
 ]
