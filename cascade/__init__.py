@@ -1,1 +1,1 @@
-from .basic import foo, return_string
+from .basic import foo, return_string_wrapper

@@ -15,7 +15,7 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn cascade(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _cascade_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     m.add_function(wrap_pyfunction!(return_string, m)?)?;
     Ok(())
