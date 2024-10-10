@@ -49,7 +49,6 @@ use thiserror::Error;
 
 pub mod algo;
 pub mod connectors;
-pub mod example;
 pub mod graph;
 pub mod loaders;
 pub mod prelude;

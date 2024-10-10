@@ -68,7 +68,7 @@ pub fn shortest_path(
     let result = time_dependent_dijkstra(graph, *source_index, None, start_time);
     // add distance to all values in the result
     let time = result.get(target_index).ok_or(Error::MissingValue(format!(
-        "failed to do {target_index:?}"
+        "failed to extract time for node {target_index:?}"
     )))?;
 
     Ok(*time + distance)
