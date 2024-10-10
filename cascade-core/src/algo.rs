@@ -7,9 +7,9 @@
 
 use std::cmp::Ordering;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::BinaryHeap;
 
-use ahash::{HashSet, HashSetExt};
+use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 
