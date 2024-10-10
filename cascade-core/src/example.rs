@@ -2,6 +2,8 @@ use crate::prelude::*;
 
 use geo::Point;
 
+#[allow(clippy::missing_panics_doc)]
+#[must_use]
 pub fn create_graph() -> TransitGraph {
     let gtfs_path = "/home/chingiz/Rust/py_rust/cascade/cascade-bin/files/Saint_Petersburg";
     let edgelist_path = "/home/chingiz/Rust/osm/roads_SZ.pbf";
@@ -21,11 +23,13 @@ pub fn create_graph() -> TransitGraph {
     transit_graph
 }
 
+#[allow(clippy::missing_panics_doc)]
+#[must_use]
 pub fn demo(graph: &TransitGraph) -> f64 {
-    let source = SnappedPoint::init(Point::new(30.320234, 59.875912), &graph).unwrap();
-    let target = SnappedPoint::init(Point::new(30.309416, 60.066852), &graph).unwrap();
+    let source = SnappedPoint::init(Point::new(30.320234, 59.875912), graph).unwrap();
+    let target = SnappedPoint::init(Point::new(30.309416, 60.066852), graph).unwrap();
 
-    *single_source_shortest_path(&graph, &source, 43200)
+    *single_source_shortest_path(graph, &source, 43200)
         .get(target.index())
         .unwrap()
 }

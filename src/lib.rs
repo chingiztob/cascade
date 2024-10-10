@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use router_core::prelude::*;
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
