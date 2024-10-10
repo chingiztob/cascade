@@ -8,9 +8,6 @@ weekday = "monday"
 
 graph = cascade.create_graph(gtfs_path, pbf_path, departure, duration, weekday)
 
-print(cascade.single_source_shortest_path(graph, 43200))
-print(cascade.single_source_shortest_path(graph, 43200))
-print(cascade.single_source_shortest_path(graph, 56000))
-print(cascade.single_source_shortest_path(graph, 75000))
+print(cascade.single_source_shortest_path(graph, 43200, 30.320234, 59.875912))
 
 print(cascade.shortest_path(graph, 75000))

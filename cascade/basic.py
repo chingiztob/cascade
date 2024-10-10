@@ -16,10 +16,10 @@ class TransitGraph:
         return self.graph
 
 
-def single_source_shortest_path(graph: TransitGraph, dep_time: int):
+def single_source_shortest_path(graph: TransitGraph, dep_time: int, x: float, y: float):
     start_time = time.perf_counter()
 
-    travel_time = core.single_source_shortest_path(graph.get_graph(), dep_time)
+    travel_time = core.single_source_shortest_path(graph.get_graph(), dep_time, x, y)
     print("Time elapsed", time.perf_counter() - start_time)
 
     return travel_time

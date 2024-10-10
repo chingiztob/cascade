@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use pyo3::prelude::*;
 
 /// Formats the sum of two numbers as string.
@@ -23,9 +25,14 @@ fn create_graph(
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn single_source_shortest_path(graph: &TransitGraphRs, start_time: u32) -> f64 {
+fn single_source_shortest_path(
+    graph: &TransitGraphRs,
+    start_time: u32,
+    x: f64,
+    y: f64,
+) -> HashMap<usize, f64> {
     let graph = &graph.graph;
-    router_core::example::shortest_path_wrapper(graph, start_time)
+    router_core::example::shortest_path_wrapper(graph, start_time, x, y)
 }
 
 /// Formats the sum of two numbers as string.
