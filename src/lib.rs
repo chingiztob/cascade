@@ -6,7 +6,7 @@ fn return_string() -> String {
     router_core::utils::return_string()
 }
 
-/// Formats the sum of two numbers as string.
+/// Creates a graph from GTFS and OSM data.
 #[pyfunction]
 fn create_graph(
     gtfs_path: &str,
@@ -23,9 +23,16 @@ fn create_graph(
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn demo(graph: &TransitGraphRs) -> f64 {
+fn single_source_shortest_path(graph: &TransitGraphRs, start_time: u32) -> f64 {
     let graph = &graph.graph;
-    router_core::example::shortest_path(graph)
+    router_core::example::shortest_path_wrapper(graph, start_time)
+}
+
+/// Formats the sum of two numbers as string.
+#[pyfunction]
+fn shortest_path(graph: &TransitGraphRs, start_time: u32) -> f64 {
+    let graph = &graph.graph;
+    router_core::example::single_shortest_path_wrapper(graph, start_time)
 }
 
 #[pyclass]
@@ -37,7 +44,8 @@ struct TransitGraphRs {
 #[pymodule]
 fn _cascade_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(return_string, m)?)?;
-    m.add_function(wrap_pyfunction!(demo, m)?)?;
+    m.add_function(wrap_pyfunction!(single_source_shortest_path, m)?)?;
+    m.add_function(wrap_pyfunction!(shortest_path, m)?)?;
     m.add_function(wrap_pyfunction!(create_graph, m)?)?;
     m.add_class::<TransitGraphRs>()?;
     Ok(())

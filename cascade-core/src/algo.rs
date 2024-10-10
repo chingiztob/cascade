@@ -15,6 +15,7 @@ use petgraph::visit::EdgeRef;
 
 use crate::graph::TransitGraph;
 use crate::prelude::SnappedPoint;
+use crate::Error;
 
 /// `MinScored<K, T>` holds a score `f64` and a scored object `T` in
 /// a pair for use with a `BinaryHeap`.
@@ -41,7 +42,6 @@ impl<K: Ord> Ord for MinScored<K> {
 }
 
 #[must_use]
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 pub fn single_source_shortest_path(
     graph: &TransitGraph,
     start: &SnappedPoint,
@@ -49,10 +49,29 @@ pub fn single_source_shortest_path(
 ) -> HashMap<NodeIndex, f64> {
     let source_index = start.index();
     let distance = *start.distance();
-    let mut result = time_dependent_dijkstra(graph, *source_index, start_time);
+    let mut result = time_dependent_dijkstra(graph, *source_index, None, start_time);
     // add distance to all values in the result
     result.iter_mut().for_each(|(_, v)| *v += distance);
     result
+}
+
+pub fn shortest_path(
+    graph: &TransitGraph,
+    start: &SnappedPoint,
+    target: &SnappedPoint,
+    start_time: u32,
+) -> Result<f64, Error> {
+    let source_index = start.index();
+    let target_index = target.index();
+
+    let distance = *start.distance();
+    let result = time_dependent_dijkstra(graph, *source_index, None, start_time);
+    // add distance to all values in the result
+    let time = result.get(target_index).ok_or(Error::MissingValue(format!(
+        "failed to do {target_index:?}"
+    )))?;
+
+    Ok(*time + distance)
 }
 
 ///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
@@ -72,6 +91,7 @@ pub fn single_source_shortest_path(
 fn time_dependent_dijkstra(
     graph: &TransitGraph,
     start: NodeIndex,
+    target: Option<NodeIndex>,
     start_time: u32,
 ) -> HashMap<NodeIndex, f64> {
     let number_of_nodes = graph.node_count();
@@ -86,6 +106,12 @@ fn time_dependent_dijkstra(
     while let Some(MinScored(node_score, (node, current_time))) = visit_next.pop() {
         if visited.contains(&node) {
             continue;
+        }
+
+        if let Some(target) = target {
+            if node == target {
+                break;
+            }
         }
 
         for edge in graph.edges(node) {
