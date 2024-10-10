@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "cascade-core"]
+members = ["cascade-core"]
 exclude = ["cascade-bin"]
 
 [package]
@@ -17,3 +17,6 @@ crate-type = ["cdylib"]
 pyo3 = { version = "0.22", features = ["extension-module"] }
 geo = "0.28.0"
 cascade_core = { path = "cascade-core" }
+
+[profile.test]
+opt-level = 1
