@@ -54,6 +54,7 @@ pub mod loaders;
 pub mod prelude;
 pub mod streets;
 pub mod utils;
+pub mod example;
 
 const WALK_SPEED: f64 = 1.39;
 
