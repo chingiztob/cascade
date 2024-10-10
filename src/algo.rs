@@ -6,7 +6,16 @@ use pyo3::prelude::*;
 
 use crate::graph::TransitGraphRs;
 
-/// Formats the sum of two numbers as string.
+///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
+/// 
+/// # Arguments
+/// * `graph` - A reference to a `TransitGraph` object.
+/// * `start` - The source node index.
+/// * `start_time` - The starting time in seconds since midnight.
+/// * `x` - The x coordinate of the source point in 4326.
+/// * `y` - The y coordinate of the source point in 4326.
+/// # Returns
+/// A `HashMap` with the shortest path weight in seconds to each node from the source node.
 #[pyfunction]
 pub fn single_source_shortest_path_rs(
     graph: &TransitGraphRs,
