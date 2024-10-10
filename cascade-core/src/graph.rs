@@ -23,7 +23,7 @@ use crate::Error;
 /// * `weekday` - Weekday for which the graph should be created
 pub struct FeedArgs<'a, P: AsRef<Path>> {
     pub gtfs_path: P,
-    pub edgelist_path: P,
+    pub pbf_path: P,
     pub departure: u32,
     pub duration: u32,
     pub weekday: &'a str,
@@ -95,7 +95,7 @@ impl TransitGraph {
         // Construct transit only graph from dataframes
         let initial_graph = loaders::new_graph(&stops_df, &stop_times_df)?;
         // Create a graph from the edgelist data
-        let mut walk_graph = streets::create_graph(&feed_args.edgelist_path)?;
+        let mut walk_graph = streets::create_graph(&feed_args.pbf_path)?;
         // Merge the pedestrian graph with the transit graph (without connections)
         loaders::merge_graphs(&mut walk_graph, &initial_graph);
         // Connect transit stops in graph to walk nodes

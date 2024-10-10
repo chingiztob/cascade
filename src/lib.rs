@@ -8,8 +8,15 @@ fn return_string() -> String {
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn create_graph() -> TransitGraphRs {
-    let graph = router_core::example::create_graph();
+fn create_graph(
+    gtfs_path: &str,
+    pbf_path: &str,
+    departure: u32,
+    duration: u32,
+    weekday: &str,
+) -> TransitGraphRs {
+    let graph =
+        router_core::example::create_graph(gtfs_path, pbf_path, departure, duration, weekday);
 
     TransitGraphRs { graph }
 }
@@ -18,14 +25,7 @@ fn create_graph() -> TransitGraphRs {
 #[pyfunction]
 fn demo(graph: &TransitGraphRs) -> f64 {
     let graph = &graph.graph;
-    router_core::example::demo(graph)
-}
-
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-#[allow(clippy::unnecessary_wraps)]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
+    router_core::example::shortest_path(graph)
 }
 
 #[pyclass]
@@ -36,7 +36,6 @@ struct TransitGraphRs {
 /// A Python module implemented in Rust.
 #[pymodule]
 fn _cascade_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     m.add_function(wrap_pyfunction!(return_string, m)?)?;
     m.add_function(wrap_pyfunction!(demo, m)?)?;
     m.add_function(wrap_pyfunction!(create_graph, m)?)?;
