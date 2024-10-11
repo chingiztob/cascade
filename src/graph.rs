@@ -4,13 +4,14 @@ use pyo3::prelude::*;
 
 /// Creates a graph from GTFS and OSM data.
 #[pyfunction]
+#[pyo3(name = "create_graph")]
 pub fn create_graph(
     gtfs_path: &str,
     pbf_path: &str,
     departure: u32,
     duration: u32,
     weekday: &str,
-) -> PyResult<TransitGraphRs> {
+) -> PyResult<PyTransitGraph> {
     let feed_args = FeedArgs {
         gtfs_path,
         pbf_path,
@@ -24,10 +25,10 @@ pub fn create_graph(
     })?;
     println!("Graph creation time: {:?}", instant.elapsed());
 
-    Ok(TransitGraphRs { graph })
+    Ok(PyTransitGraph { graph })
 }
 
 #[pyclass]
-pub struct TransitGraphRs {
+pub struct PyTransitGraph {
     pub graph: TransitGraph,
 }

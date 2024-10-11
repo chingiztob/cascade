@@ -1,3 +1,4 @@
 # ruff: noqa: F401
-from .graph import TransitGraph, create_graph
-from .paths import shortest_path, single_source_shortest_path
+from cascade._cascade_core import PyTransitGraph, create_graph, single_source_shortest_path, shortest_path
+
+__all__ = ["PyTransitGraph", "create_graph", "single_source_shortest_path", "shortest_path"]

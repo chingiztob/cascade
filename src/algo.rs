@@ -4,7 +4,7 @@ use cascade_core::prelude::*;
 use geo::Point;
 use pyo3::prelude::*;
 
-use crate::graph::TransitGraphRs;
+use crate::graph::PyTransitGraph;
 
 ///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
 ///
@@ -17,8 +17,9 @@ use crate::graph::TransitGraphRs;
 /// # Returns
 /// A `HashMap` with the shortest path weight in seconds to each node from the source node.
 #[pyfunction]
+#[pyo3(name = "single_source_shortest_path")]
 pub fn single_source_shortest_path_rs(
-    graph: &TransitGraphRs,
+    graph: &PyTransitGraph,
     start_time: u32,
     x: f64,
     y: f64,
@@ -38,7 +39,8 @@ pub fn single_source_shortest_path_rs(
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-pub fn shortest_path_rs(graph: &TransitGraphRs, start_time: u32) -> PyResult<f64> {
+#[pyo3(name = "shortest_path")]
+pub fn shortest_path_rs(graph: &PyTransitGraph, start_time: u32) -> PyResult<f64> {
     let graph = &graph.graph;
 
     let source = SnappedPoint::init(Point::new(30.320234, 59.875912), graph).map_err(|e| {

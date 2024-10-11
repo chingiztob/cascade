@@ -5,7 +5,7 @@ Hello world!
 use pyo3::prelude::*;
 
 use crate::algo::{shortest_path_rs, single_source_shortest_path_rs};
-use crate::graph::{create_graph, TransitGraphRs};
+use crate::graph::{create_graph, PyTransitGraph};
 
 pub mod algo;
 pub mod graph;
@@ -22,6 +22,6 @@ fn _cascade_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(single_source_shortest_path_rs, m)?)?;
     m.add_function(wrap_pyfunction!(shortest_path_rs, m)?)?;
     m.add_function(wrap_pyfunction!(create_graph, m)?)?;
-    m.add_class::<TransitGraphRs>()?;
+    m.add_class::<PyTransitGraph>()?;
     Ok(())
 }
