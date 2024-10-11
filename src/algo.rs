@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use ahash::HashMap;
 
 use cascade_core::prelude::*;
 use geo::Point;
@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 use crate::graph::TransitGraphRs;
 
 ///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
-/// 
+///
 /// # Arguments
 /// * `graph` - A reference to a `TransitGraph` object.
 /// * `start` - The source node index.
@@ -28,9 +28,12 @@ pub fn single_source_shortest_path_rs(
         pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
     })?;
 
-    let hmap = cascade_core::algo::single_source_shortest_path(graph, &source, start_time);
+    let hmap = cascade_core::algo::single_source_shortest_path(graph, &source, start_time)
+        .into_iter()
+        .map(|(k, v)| (k.index(), v))
+        .collect();
 
-    Ok(hmap.into_iter().map(|(k, v)| (k.index(), v)).collect())
+    Ok(hmap)
 }
 
 /// Formats the sum of two numbers as string.
