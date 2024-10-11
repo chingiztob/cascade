@@ -40,13 +40,20 @@ pub fn single_source_shortest_path_rs(
 /// Formats the sum of two numbers as string.
 #[pyfunction]
 #[pyo3(name = "shortest_path")]
-pub fn shortest_path_rs(graph: &PyTransitGraph, start_time: u32) -> PyResult<f64> {
+pub fn shortest_path_rs(
+    graph: &PyTransitGraph,
+    start_time: u32,
+    source_x: f64,
+    source_y: f64,
+    target_x: f64,
+    target_y: f64,
+) -> PyResult<f64> {
     let graph = &graph.graph;
 
-    let source = SnappedPoint::init(Point::new(30.320234, 59.875912), graph).map_err(|e| {
+    let source = SnappedPoint::init(Point::new(source_x, source_y), graph).map_err(|e| {
         pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
     })?;
-    let target = SnappedPoint::init(Point::new(30.309416, 60.066852), graph).map_err(|e| {
+    let target = SnappedPoint::init(Point::new(target_x, target_y), graph).map_err(|e| {
         pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
     })?;
 
