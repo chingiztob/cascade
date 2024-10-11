@@ -15,4 +15,13 @@ print(mapping[111].get_node_type())
 
 print(len(cascade.single_source_shortest_path(graph, 43200, 30.320234, 59.875912)))
 
-print(cascade.shortest_path(graph, 75000, 30.320234, 59.875912, 30.309416, 60.066852))
+print(
+    cascade.shortest_path(
+        graph=graph,
+        dep_time=43200,
+        source_x=30.349061,
+        source_y=59.878163,
+        target_x=30.370268,
+        target_y=59.851074,
+    )
+)
