@@ -2,8 +2,8 @@ use ahash::{HashMap, HashSet};
 
 use cascade_core::prelude::*;
 use geo::Point;
-use rayon::prelude::*;
 use pyo3::prelude::*;
+use rayon::prelude::*;
 
 use crate::graph::PyTransitGraph;
 
@@ -71,6 +71,13 @@ pub fn calculate_od_matrix(
         .map(|(x, y)| snap_point(x, y, graph))
         .collect::<Result<Vec<_>, _>>()?;
 
+    let node_ids = nodes
+        .iter()
+        .map(|sn| sn.index().index())
+        .collect::<HashSet<usize>>();
+
+    println!("{}", node_ids.len());
+
     let od_matrix = nodes
         .par_iter()
         .map(|node| {
@@ -78,6 +85,7 @@ pub fn calculate_od_matrix(
                 cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
                     .into_iter()
                     .map(|(k, v)| (k.index(), v))
+                    .filter(|(k, _)| node_ids.contains(k))
                     .collect::<HashMap<usize, f64>>();
             (node.index().index(), shortest_paths) // This is cringe, but it works
         })
@@ -91,3 +99,11 @@ fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<SnappedPoint> {
         pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
     })
 }
+
+/* #[pyclass]
+#[derive(FromPyObject)]
+struct PyPoint {
+    x: f64,
+    y: f64,
+    id: String
+} */
