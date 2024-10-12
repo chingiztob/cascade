@@ -1,7 +1,8 @@
-use ahash::HashMap;
+use ahash::{HashMap, HashSet};
 
 use cascade_core::prelude::*;
 use geo::Point;
+use rayon::prelude::*;
 use pyo3::prelude::*;
 
 use crate::graph::PyTransitGraph;
@@ -25,9 +26,7 @@ pub fn single_source_shortest_path_rs(
     y: f64,
 ) -> PyResult<HashMap<usize, f64>> {
     let graph = &graph.graph;
-    let source = SnappedPoint::init(Point::new(x, y), graph).map_err(|e| {
-        pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
-    })?;
+    let source = snap_point(x, y, graph)?;
 
     let hmap = cascade_core::algo::single_source_shortest_path(graph, &source, start_time)
         .into_iter()
@@ -42,7 +41,7 @@ pub fn single_source_shortest_path_rs(
 #[pyo3(name = "shortest_path")]
 pub fn shortest_path_rs(
     graph: &PyTransitGraph,
-    start_time: u32,
+    dep_time: u32,
     source_x: f64,
     source_y: f64,
     target_x: f64,
@@ -50,15 +49,45 @@ pub fn shortest_path_rs(
 ) -> PyResult<f64> {
     let graph = &graph.graph;
 
-    let source = SnappedPoint::init(Point::new(source_x, source_y), graph).map_err(|e| {
-        pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
-    })?;
-    let target = SnappedPoint::init(Point::new(target_x, target_y), graph).map_err(|e| {
-        pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
-    })?;
+    let source = snap_point(source_x, source_y, graph)?;
+    let target = snap_point(target_x, target_y, graph)?;
 
-    let result = cascade_core::algo::shortest_path(graph, &source, &target, start_time)
+    let result = cascade_core::algo::shortest_path(graph, &source, &target, dep_time)
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{e:?}")))?;
 
     Ok(result)
+}
+
+/// Formats the sum of two numbers as string.
+#[pyfunction]
+pub fn calculate_od_matrix(
+    graph: &PyTransitGraph,
+    nodes: Vec<(f64, f64)>,
+    dep_time: u32,
+) -> PyResult<HashMap<usize, HashMap<usize, f64>>> {
+    let graph = &graph.graph;
+    let nodes = nodes
+        .into_iter()
+        .map(|(x, y)| snap_point(x, y, graph))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let od_matrix = nodes
+        .par_iter()
+        .map(|node| {
+            let shortest_paths =
+                cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
+                    .into_iter()
+                    .map(|(k, v)| (k.index(), v))
+                    .collect::<HashMap<usize, f64>>();
+            (node.index().index(), shortest_paths) // This is cringe, but it works
+        })
+        .collect::<HashMap<usize, HashMap<usize, f64>>>();
+
+    Ok(od_matrix)
+}
+
+fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<SnappedPoint> {
+    SnappedPoint::init(Point::new(x, y), graph).map_err(|e| {
+        pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
+    })
 }

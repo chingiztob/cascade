@@ -14,10 +14,11 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.22", features = ["extension-module"] }
+pyo3 = { version = "0.22.4", features = ["extension-module"] }
 ahash = "0.8.11"
 geo = "0.28.0"
 petgraph = "0.6.5"
+rayon = "1.10"
 cascade_core = { path = "cascade-core" }
 
 [profile.test]

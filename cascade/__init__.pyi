@@ -1,5 +1,5 @@
 # ruff: noqa: F401
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 class PyTransitGraph:
     """Efficient representation of transit graph written in Rust."""
@@ -31,3 +31,6 @@ def shortest_path(
     target_x: float,
     target_y: float,
 ) -> float: ...
+def calculate_od_matrix(
+    graph: PyTransitGraph, points: List[Tuple[float, float]], dep_time: int
+) -> Dict[int, Dict[int, float]]: ...
