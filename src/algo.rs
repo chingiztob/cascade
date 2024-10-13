@@ -1,4 +1,4 @@
-use ahash::{HashMap, HashSet};
+use ahash::HashMap;
 
 use cascade_core::prelude::*;
 use geo::Point;
@@ -58,38 +58,42 @@ pub fn shortest_path_rs(
     Ok(result)
 }
 
-/// Formats the sum of two numbers as string.
 #[pyfunction]
+#[allow(clippy::missing_panics_doc)]
 pub fn calculate_od_matrix(
     graph: &PyTransitGraph,
-    nodes: Vec<(f64, f64)>,
+    nodes: Vec<PyPoint>,
     dep_time: u32,
-) -> PyResult<HashMap<usize, HashMap<usize, f64>>> {
+) -> PyResult<HashMap<String, HashMap<String, f64>>> {
     let graph = &graph.graph;
-    let nodes = nodes
+
+    // Snap each PyPoint and keep track of the original id
+    let snapped_points = nodes
         .into_iter()
-        .map(|(x, y)| snap_point(x, y, graph))
-        .collect::<Result<Vec<_>, _>>()?;
+        .map(|py_point| {
+            let snapped = snap_point(py_point.x, py_point.y, graph).unwrap();
+            (py_point.id, snapped)
+        })
+        .collect::<Vec<(String, SnappedPoint)>>();
 
-    let node_ids = nodes
+    // Map of node IDs to original PyPoint IDs for lookup
+    let id_map: HashMap<usize, String> = snapped_points
         .iter()
-        .map(|sn| sn.index().index())
-        .collect::<HashSet<usize>>();
+        .map(|(id, sn)| (sn.index().index(), id.clone()))
+        .collect();
 
-    println!("{}", node_ids.len());
-
-    let od_matrix = nodes
+    // Collect the OD matrix with PyPoint IDs as keys
+    let od_matrix = snapped_points
         .par_iter()
-        .map(|node| {
+        .map(|(id, node)| {
             let shortest_paths =
                 cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
                     .into_iter()
-                    .map(|(k, v)| (k.index(), v))
-                    .filter(|(k, _)| node_ids.contains(k))
-                    .collect::<HashMap<usize, f64>>();
-            (node.index().index(), shortest_paths) // This is cringe, but it works
+                    .filter_map(|(k, v)| id_map.get(&k.index()).map(|dest_id| (dest_id.clone(), v)))
+                    .collect::<HashMap<String, f64>>();
+            (id.clone(), shortest_paths)
         })
-        .collect::<HashMap<usize, HashMap<usize, f64>>>();
+        .collect::<HashMap<String, HashMap<String, f64>>>();
 
     Ok(od_matrix)
 }
@@ -100,10 +104,34 @@ fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<SnappedPoint> {
     })
 }
 
-/* #[pyclass]
-#[derive(FromPyObject)]
-struct PyPoint {
-    x: f64,
-    y: f64,
-    id: String
-} */
+#[pyclass]
+#[derive(Clone)] // This allow backwards conversion from python PyPoint
+pub struct PyPoint {
+    pub x: f64,
+    pub y: f64,
+    pub id: String,
+}
+
+#[pymethods]
+impl PyPoint {
+    #[new]
+    #[must_use]
+    pub fn new(x: f64, y: f64, id: String) -> Self {
+        Self { x, y, id }
+    }
+
+    #[must_use]
+    pub fn x(&self) -> f64 {
+        self.x
+    }
+
+    #[must_use]
+    pub fn y(&self) -> f64 {
+        self.y
+    }
+
+    #[must_use]
+    pub fn id(&self) -> String {
+        self.id.clone()
+    }
+}

@@ -100,6 +100,7 @@ impl TransitGraph {
         loaders::merge_graphs(&mut walk_graph, &initial_graph);
         // Connect transit stops in graph to walk nodes
         connectors::connect_stops_to_streets(&mut walk_graph)?;
+
         // At this point `walk_graph` contains the complete graph with transit and walk nodes connected
         Ok(walk_graph)
     }
