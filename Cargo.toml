@@ -1,0 +1,24 @@
+[workspace]
+resolver = "2"
+members = ["cascade-core"]
+exclude = ["cascade-bin"]
+
+[package]
+name = "cascade"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cascade"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22.4", features = ["extension-module"] }
+ahash = "0.8.11"
+geo = "0.28.0"
+rayon = "1.10"
+cascade_core = { path = "cascade-core" }
+
+[profile.test]
+opt-level = 1
