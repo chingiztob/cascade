@@ -36,7 +36,6 @@ pub fn single_source_shortest_path_rs(
     Ok(hmap)
 }
 
-/// Formats the sum of two numbers as string.
 #[pyfunction]
 #[pyo3(name = "shortest_path")]
 pub fn shortest_path_rs(
@@ -59,7 +58,6 @@ pub fn shortest_path_rs(
 }
 
 #[pyfunction]
-#[allow(clippy::missing_panics_doc)]
 pub fn calculate_od_matrix(
     graph: &PyTransitGraph,
     nodes: Vec<PyPoint>,
@@ -67,33 +65,37 @@ pub fn calculate_od_matrix(
 ) -> PyResult<HashMap<String, HashMap<String, f64>>> {
     let graph = &graph.graph;
 
-    // Snap each PyPoint and keep track of the original id
-    let snapped_points = nodes
+    let snapped_points: Vec<(String, SnappedPoint)> = nodes
         .into_iter()
         .map(|py_point| {
-            let snapped = snap_point(py_point.x, py_point.y, graph).unwrap();
-            (py_point.id, snapped)
+            snap_point(py_point.x, py_point.y, graph)
+                .map(|snapped| (py_point.id, snapped))
+                .map_err(PyErr::from) // Convert the error to PyErr for PyO3
         })
-        .collect::<Vec<(String, SnappedPoint)>>();
+        .collect::<Result<Vec<_>, PyErr>>()?;
 
-    // Map of node IDs to original PyPoint IDs for lookup
-    let id_map: HashMap<usize, String> = snapped_points
+    // Map of node indices to original PyPoint IDs for lookup
+    let id_map: HashMap<usize, &String> = snapped_points
         .iter()
-        .map(|(id, sn)| (sn.index().index(), id.clone()))
+        .map(|(id, sn)| (sn.index().index(), id))
         .collect();
 
     // Collect the OD matrix with PyPoint IDs as keys
-    let od_matrix = snapped_points
+    let od_matrix: HashMap<String, HashMap<String, f64>> = snapped_points
         .par_iter()
         .map(|(id, node)| {
             let shortest_paths =
                 cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
-                    .into_iter()
-                    .filter_map(|(k, v)| id_map.get(&k.index()).map(|dest_id| (dest_id.clone(), v)))
+                    .into_par_iter()
+                    // For each (k: NodeIndex), find the `id` of the destination point in the id_map
+                    // TODO. Add residual distance from SnappedPoint to resulting hashmap
+                    .filter_map(|(k, v)| {
+                        id_map.get(&k.index()).map(|&dest_id| (dest_id.clone(), v))
+                    })
                     .collect::<HashMap<String, f64>>();
             (id.clone(), shortest_paths)
         })
-        .collect::<HashMap<String, HashMap<String, f64>>>();
+        .collect();
 
     Ok(od_matrix)
 }
