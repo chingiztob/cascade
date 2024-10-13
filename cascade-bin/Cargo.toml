@@ -1,8 +1,0 @@
-[package]
-name = "cascade-bin"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-router_core = { path = "../cascade-core" }
-geo = "0.28.0"
