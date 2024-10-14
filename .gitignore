@@ -1,6 +1,3 @@
-/target
-/cascade-bin/target
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .pytest_cache/
@@ -73,7 +70,4 @@ docs/_build/
 .python-version
 
 # DEV
-files
-cache
-/scripts
-*.ipynb
+/target
