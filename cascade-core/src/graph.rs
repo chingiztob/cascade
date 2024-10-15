@@ -155,12 +155,6 @@ impl DerefMut for TransitGraph {
     }
 }
 
-impl Default for TransitGraph {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// Node representing a transit stop
 /// Contains the GTFS feed `stop_id` and `geometry` of the stop
 /// `geometry` is a `geo::Geometry` object representing the location of the stop

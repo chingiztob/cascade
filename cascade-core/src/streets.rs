@@ -9,6 +9,15 @@ use crate::connectors::build_rtree;
 use crate::graph::{GraphEdge, GraphNode, TransitGraph, WalkEdge, WalkNode};
 use crate::Error;
 
+/// Creates a transit graph from an OpenStreetMap (OSM) PBF file.
+///
+/// This function reads OSM data, filters it by the "highway" tag, and constructs a directed graph
+/// (`DiGraph`) where nodes represent OSM nodes and edges represent OSM ways.
+/// 
+/// The function then identifies the largest connected component in the graph and creates a new
+/// graph containing only this component. This new graph is used to build an R-tree for spatial
+/// indexing.
+#[allow(clippy::redundant_closure_for_method_calls)]
 pub(crate) fn create_graph(filename: impl AsRef<Path>) -> Result<TransitGraph, Error> {
     let mut graph = DiGraph::<GraphNode, GraphEdge>::new();
     // This hashmap is used to store OSM node IDs and their corresponding graph node indices
@@ -45,29 +54,29 @@ pub(crate) fn create_graph(filename: impl AsRef<Path>) -> Result<TransitGraph, E
         });
 
         graph.add_edge(source_index, target_index, edge_type.clone());
-        // TODO: Filter duplicate edges
         graph.add_edge(target_index, source_index, edge_type);
     }
 
     let largest_component = connected_components(&graph)
-        .iter()
+        .into_iter()
         .max_by_key(|set| set.len())
-        .cloned()
-        .unwrap();
+        .ok_or(Error::MissingValue(
+            "No connected components found".to_string(),
+        ))?;
 
     // Create a new graph for the largest connected component
     let mut new_graph = DiGraph::<GraphNode, GraphEdge>::new();
     let mut new_node_indices = HashMap::new();
 
-    for &node_index in &largest_component {
-        let node = graph[node_index].clone();
+    for node_index in &largest_component {
+        let node = graph[*node_index].clone();
         let new_node_index = new_graph.add_node(node);
         new_node_indices.insert(node_index, new_node_index); // Keep track of indices
     }
 
-    for &node_index in &largest_component {
-        for neighbor in graph.neighbors(node_index) {
-            let edge = graph.find_edge(node_index, neighbor).unwrap();
+    for node_index in &largest_component {
+        for neighbor in graph.neighbors(*node_index) {
+            let edge = graph.find_edge(*node_index, neighbor).unwrap();
             let edge_type = graph[edge].clone();
 
             new_graph.add_edge(

@@ -21,14 +21,14 @@ use crate::graph::PyTransitGraph;
 #[pyo3(name = "single_source_shortest_path")]
 pub fn single_source_shortest_path_rs(
     graph: &PyTransitGraph,
-    start_time: u32,
+    dep_time: u32,
     x: f64,
     y: f64,
 ) -> PyResult<HashMap<usize, f64>> {
     let graph = &graph.graph;
     let source = snap_point(x, y, graph)?;
 
-    let hmap = cascade_core::algo::single_source_shortest_path(graph, &source, start_time)
+    let hmap = cascade_core::algo::single_source_shortest_path(graph, &source, dep_time)
         .into_iter()
         .map(|(k, v)| (k.index(), v))
         .collect();
@@ -36,6 +36,18 @@ pub fn single_source_shortest_path_rs(
     Ok(hmap)
 }
 
+///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
+///
+/// # Arguments
+/// * `graph` - A reference to a `TransitGraph` object.
+/// * `start` - The source node index.
+/// * `start_time` - The starting time in seconds since midnight.
+/// * `source_x` - The x coordinate of the source point in 4326.
+/// * `source_y` - The y coordinate of the source point in 4326.
+/// * `target_x` - The x coordinate of the target point in 4326.
+/// * `target_y` - The y coordinate of the target point in 4326.
+/// # Returns
+/// weight of the shortest path in seconds.
 #[pyfunction]
 #[pyo3(name = "shortest_path")]
 pub fn shortest_path_rs(
@@ -86,11 +98,13 @@ pub fn calculate_od_matrix(
         .map(|(id, node)| {
             let shortest_paths =
                 cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
-                    .into_par_iter()
+                    .into_iter()
                     // For each (k: NodeIndex), find the `id` of the destination point in the id_map
                     // TODO. Add residual distance from SnappedPoint to resulting hashmap
                     .filter_map(|(k, v)| {
-                        id_map.get(&k.index()).map(|&dest_id| (dest_id.clone(), v))
+                        id_map
+                            .get(&k.index())
+                            .map(|&dest_id| (dest_id.clone(), v + node.distance()))
                     })
                     .collect::<HashMap<String, f64>>();
             (id.clone(), shortest_paths)
@@ -106,6 +120,7 @@ fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<SnappedPoint> {
     })
 }
 
+/// A Python wrapper to pass coordinates with an ID to Rust backend.
 #[pyclass]
 #[derive(Clone)] // This allow backwards conversion from python PyPoint
 pub struct PyPoint {
