@@ -16,6 +16,10 @@ pub fn create_graph(
     duration: u32,
     weekday: &str,
 ) -> PyResult<PyTransitGraph> {
+    // create pathbufs from the input strings
+    let gtfs_path = std::path::PathBuf::from(gtfs_path);
+    let pbf_path = std::path::PathBuf::from(pbf_path);
+
     let feed_args = FeedArgs {
         gtfs_path,
         pbf_path,
@@ -24,7 +28,7 @@ pub fn create_graph(
         weekday,
     };
     let instant = std::time::Instant::now();
-    let graph = TransitGraph::from(&feed_args).map_err(|e| {
+    let graph = TransitGraph::from(feed_args).map_err(|e| {
         pyo3::exceptions::PyRuntimeError::new_err(format!("Graph creation failed: {e:?}"))
     })?;
 

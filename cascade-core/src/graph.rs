@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display};
 use std::ops::{Deref, DerefMut};
-use std::path::Path;
+use std::path::PathBuf;
 
 use geo::Point;
 use osm4routing::NodeId;
@@ -21,9 +21,9 @@ use crate::Error;
 /// * `departure` - Departure time in seconds from midnight
 /// * `duration` - Duration in seconds for which the graph should be created
 /// * `weekday` - Weekday for which the graph should be created
-pub struct FeedArgs<'a, P: AsRef<Path>> {
-    pub gtfs_path: P,
-    pub pbf_path: P,
+pub struct FeedArgs<'a> {
+    pub gtfs_path: PathBuf,
+    pub pbf_path: PathBuf,
     pub departure: u32,
     pub duration: u32,
     pub weekday: &'a str,
@@ -84,7 +84,11 @@ impl TransitGraph {
     /// };
     /// let transit_graph = TransitGraph::from(&feed_args)?;
     /// ```
-    pub fn from<P: AsRef<Path>>(feed_args: &FeedArgs<P>) -> Result<Self, Error> {
+    pub fn from(feed_args: FeedArgs) -> Result<Self, Error> {
+        // perform street graph creation in a separate thread
+        let walk_graph_handle =
+            std::thread::spawn(move || streets::create_graph(&feed_args.pbf_path));
+
         // Prepare the dataframes from the GTFS feed
         let (stops_df, stop_times_df) = loaders::prepare_dataframes(
             &feed_args.gtfs_path,
@@ -92,16 +96,19 @@ impl TransitGraph {
             feed_args.duration,
             feed_args.weekday,
         )?;
+
         // Construct transit only graph from dataframes
         let initial_graph = loaders::new_graph(&stops_df, &stop_times_df)?;
-        // Create a graph from the edgelist data
-        let mut walk_graph = streets::create_graph(&feed_args.pbf_path)?;
+        // retrieve the street graph from the thread
+        let mut walk_graph = walk_graph_handle.join().map_err(|_| {
+            Error::ThreadPanicError("Failed to join street graph thread".to_string())
+        })??;
+
         // Merge the pedestrian graph with the transit graph (without connections)
         loaders::merge_graphs(&mut walk_graph, &initial_graph);
         // Connect transit stops in graph to walk nodes
         connectors::connect_stops_to_streets(&mut walk_graph)?;
 
-        // At this point `walk_graph` contains the complete graph with transit and walk nodes connected
         Ok(walk_graph)
     }
 

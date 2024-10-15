@@ -81,6 +81,8 @@ pub enum Error {
     NodeNotFound(String),
     #[error("Polars error: {0}")]
     PolarsError(#[from] PolarsError),
+    #[error("Thread panicked")]
+    ThreadPanicError(String),
 }
 
 impl From<Error> for PolarsError {
