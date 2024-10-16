@@ -165,6 +165,33 @@ fn add_nodes_to_graph(
     Ok(())
 }
 
+fn select_columns(sorted_group: &DataFrame) -> Vec<&str> {
+    // Check if the wheelchair_accessible column exists and select columns accordingly
+    let columns: Vec<&str> = if sorted_group
+        .get_column_names()
+        .contains(&&PlSmallStr::from_str("wheelchair_accessible"))
+    {
+        vec![
+            "arrival_time",
+            "departure_time",
+            "stop_id",
+            "stop_sequence",
+            "route_id",
+            "wheelchair_accessible",
+        ]
+    } else {
+        vec![
+            "arrival_time",
+            "departure_time",
+            "stop_id",
+            "stop_sequence",
+            "route_id",
+        ]
+    };
+
+    columns
+}
+
 fn add_edges_to_graph(
     stop_times_df: &DataFrame,
     transit_graph: &mut TransitGraph,
@@ -175,65 +202,42 @@ fn add_edges_to_graph(
     grouped_df.apply(|group| {
         let sorted_group = group.sort(["stop_sequence"], SortMultipleOptions::default())?;
 
-        // Read wheelchair_accessible column if it exists
-        let columns: Vec<&str> = if sorted_group
-            .get_column_names()
-            .contains(&&PlSmallStr::from_str("wheelchair_accessible"))
-        {
-            vec![
-                "arrival_time",
-                "departure_time",
-                "stop_id",
-                "stop_sequence",
-                "route_id",
-                "wheelchair_accessible",
-            ]
-        } else {
-            vec![
-                "arrival_time",
-                "departure_time",
-                "stop_id",
-                "stop_sequence",
-                "route_id",
-            ]
-        };
-
+        let columns = select_columns(&sorted_group);
         let selected_columns = sorted_group.select(columns)?;
 
         let stops = selected_columns
             .column("stop_id")?
-            .cast(&DataType::String)?; // Cast stop_id to String (Utf8)
+            .cast(&DataType::String)?;
         let stops = stops
             .str()?
             .into_iter()
-            .map(|opt| opt.expect("Missing stop_id")); // Unwrap stop_id or raise error
+            .map(|opt| opt.expect("Missing stop_id"));
 
         let arrival_times = selected_columns
             .column("arrival_time")?
-            .cast(&DataType::UInt32)?; // Cast arrival_time to u32
+            .cast(&DataType::UInt32)?;
         let arrival_times = arrival_times
             .u32()?
             .into_iter()
-            .map(|opt| opt.expect("Missing arrival_time")); // Unwrap arrival_time or raise error
+            .map(|opt| opt.expect("Missing arrival_time"));
 
         let departure_times = selected_columns
             .column("departure_time")?
-            .cast(&DataType::UInt32)?; // Cast departure_time to u32
+            .cast(&DataType::UInt32)?;
         let departure_times = departure_times
             .u32()?
             .into_iter()
-            .map(|opt| opt.expect("Missing departure_time")); // Unwrap departure_time or raise error
+            .map(|opt| opt.expect("Missing departure_time"));
 
         let route_ids = selected_columns
             .column("route_id")?
-            .cast(&DataType::String)?; // Cast route_id to String (Utf8)
+            .cast(&DataType::String)?;
         let route_ids = route_ids
             .str()?
             .into_iter()
-            .map(|opt| opt.expect("Missing route_id")); // Unwrap route_id or raise error
+            .map(|opt| opt.expect("Missing route_id"));
 
         // zip all columns into a single iterator
-        // Zipping the iterators
         let zipped = stops
             .zip(arrival_times)
             .zip(departure_times)
@@ -242,41 +246,63 @@ fn add_edges_to_graph(
 
         for (
             (((current_stop, current_arrival_time), _), current_route_id),
-            ((next_stop, next_arrival_time), _),
+            (((next_stop, _), next_arrival_time), _),
         ) in zipped
         {
-            let route = Trip::new(
+            add_edge_to_graph(
+                transit_graph,
+                node_id_map,
+                current_stop,
+                next_stop,
                 current_arrival_time,
                 next_arrival_time,
-                String::from(current_route_id),
-                false,
-            );
-
-            let source_node = *node_id_map
-                .get(current_stop)
-                .ok_or_else(|| Error::NodeNotFound(String::from(current_stop)))?;
-            let target_node = *node_id_map
-                .get(next_stop.0)
-                .ok_or_else(|| Error::NodeNotFound(String::from(next_stop.0)))?;
-
-            if let Some(edge) = transit_graph.find_edge(source_node, target_node) {
-                let edge_data = transit_graph.edge_weight_mut(edge).unwrap();
-                if let GraphEdge::Transit(transit_edge) = edge_data {
-                    transit_edge.edge_trips.push(route.clone());
-                }
-            } else {
-                transit_graph.add_edge(
-                    source_node,
-                    target_node,
-                    GraphEdge::Transit(TransitEdge {
-                        edge_trips: vec![route],
-                    }),
-                );
-            }
+                current_route_id,
+            )?;
         }
 
         Ok(selected_columns)
     })?;
+
+    Ok(())
+}
+
+fn add_edge_to_graph(
+    transit_graph: &mut TransitGraph,
+    node_id_map: &HashMap<String, NodeIndex>,
+    current_stop: &str,
+    next_stop: &str,
+    current_arrival_time: u32,
+    next_arrival_time: u32,
+    current_route_id: &str,
+) -> Result<(), Error> {
+    let route = Trip::new(
+        current_arrival_time,
+        next_arrival_time,
+        String::from(current_route_id),
+        false,
+    );
+
+    let source_node = *node_id_map
+        .get(current_stop)
+        .ok_or_else(|| Error::NodeNotFound(String::from(current_stop)))?;
+    let target_node = *node_id_map
+        .get(next_stop)
+        .ok_or_else(|| Error::NodeNotFound(String::from(next_stop)))?;
+
+    if let Some(edge) = transit_graph.find_edge(source_node, target_node) {
+        let edge_data = transit_graph.edge_weight_mut(edge).unwrap();
+        if let GraphEdge::Transit(transit_edge) = edge_data {
+            transit_edge.edge_trips.push(route);
+        }
+    } else {
+        transit_graph.add_edge(
+            source_node,
+            target_node,
+            GraphEdge::Transit(TransitEdge {
+                edge_trips: vec![route],
+            }),
+        );
+    }
 
     Ok(())
 }
