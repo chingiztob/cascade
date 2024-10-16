@@ -5,6 +5,7 @@ use cascade_core::prelude::*;
 
 use geo::Point;
 use pyo3::prelude::*;
+use pyo3::types::PyString;
 
 /// Creates a graph from GTFS and OSM data.
 #[pyfunction]
@@ -73,6 +74,15 @@ pub struct PyTransitGraph {
 
 #[pymethods]
 impl PyTransitGraph {
+    fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
+        let class_name: Bound<'_, PyString> = slf.get_type().qualname()?;
+        Ok(format!(
+            "{class_name} with {} nodes and {} edges",
+            slf.borrow().graph.node_count(),
+            slf.borrow().graph.edge_count()
+        ))
+    }
+
     #[must_use]
     pub fn get_mapping(&self) -> HashMap<usize, PyGraphNode> {
         self.id_mapping.clone()
@@ -80,7 +90,7 @@ impl PyTransitGraph {
 }
 
 #[pyclass]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PyGraphNode {
     pub node_type: String,
     pub id: String,
@@ -89,6 +99,15 @@ pub struct PyGraphNode {
 
 #[pymethods]
 impl PyGraphNode {
+    fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
+        let class_name: Bound<'_, PyString> = slf.get_type().qualname()?;
+        Ok(format!("{class_name}"))
+    }
+
+    fn __str__(&self) -> String {
+        format!("{self:?}")
+    }
+
     #[must_use]
     pub fn get_node_type(&self) -> String {
         self.node_type.clone()

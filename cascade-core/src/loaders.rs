@@ -132,25 +132,11 @@ fn add_nodes_to_graph(
     transit_graph: &mut TransitGraph,
     node_id_map: &mut HashMap<String, NodeIndex>,
 ) -> Result<(), Error> {
-    let stop_ids = stops_df
-        .column("stop_id")?
-        .str()?
-        .into_iter()
-        .collect::<Vec<_>>();
-    let stop_lons = stops_df
-        .column("stop_lon")?
-        .f64()?
-        .into_iter()
-        .collect::<Vec<_>>();
-    let stop_lats = stops_df
-        .column("stop_lat")?
-        .f64()?
-        .into_iter()
-        .collect::<Vec<_>>();
+    let stop_ids = stops_df.column("stop_id")?.str()?.into_iter();
+    let stop_lons = stops_df.column("stop_lon")?.f64()?.into_iter();
+    let stop_lats = stops_df.column("stop_lat")?.f64()?.into_iter();
 
-    for (stop_id, (stop_lon, stop_lat)) in
-        stop_ids.iter().zip(stop_lons.iter().zip(stop_lats.iter()))
-    {
+    for (stop_id, (stop_lon, stop_lat)) in stop_ids.zip(stop_lons.zip(stop_lats)) {
         let stop_id = stop_id.ok_or_else(|| Error::MissingValue("stop_id".to_string()))?;
         let stop_lon = stop_lon.ok_or_else(|| Error::MissingValue("stop_lon".to_string()))?;
         let stop_lat = stop_lat.ok_or_else(|| Error::MissingValue("stop_lat".to_string()))?;

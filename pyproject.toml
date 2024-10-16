@@ -16,3 +16,13 @@ license = {text = "MIT OR Apache-2.0"}
 [tool.maturin]
 features = ["pyo3/extension-module"]
 module-name = "cascade._cascade_core"
+
+[tool.uv]
+dev-dependencies = [
+    "maturin",
+    "geopandas",
+    "h3pandas",
+    "folium",
+    "mapclassify",
+    "osmnx",
+]

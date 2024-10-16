@@ -100,7 +100,6 @@ pub fn calculate_od_matrix(
                 cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
                     .into_iter()
                     // For each (k: NodeIndex), find the `id` of the destination point in the id_map
-                    // TODO. Add residual distance from SnappedPoint to resulting hashmap
                     .filter_map(|(k, v)| {
                         id_map
                             .get(&k.index())
