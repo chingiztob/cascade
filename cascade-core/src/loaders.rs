@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use ahash::{HashMap, HashMapExt};
 use geo::Point;
+use itertools::Itertools;
 use petgraph::graph::Graph;
 use petgraph::prelude::NodeIndex;
 use petgraph::visit::EdgeRef;
@@ -164,18 +165,6 @@ fn add_nodes_to_graph(
     Ok(())
 }
 
-fn get_row_string(row: &[AnyValue], index: usize, err: &str) -> Result<String, Error> {
-    let row = row.get(index).ok_or(Error::MissingValue(err.to_string()))?;
-
-    match row.dtype() {
-        DataType::String => row
-            .get_str()
-            .ok_or_else(|| Error::CastError(format!("Failed to cast: {err}")))
-            .map(std::string::ToString::to_string),
-        _ => Ok(row.to_string()),
-    }
-}
-
 fn add_edges_to_graph(
     stop_times_df: &DataFrame,
     transit_graph: &mut TransitGraph,
@@ -211,45 +200,64 @@ fn add_edges_to_graph(
 
         let selected_columns = sorted_group.select(columns)?;
 
-        for i in 0..selected_columns.height() - 1 {
-            let row = selected_columns.get_row(i)?.0;
-            let stop_id = get_row_string(&row, 2, "stop_id")?;
+        let stops = selected_columns
+            .column("stop_id")?
+            .cast(&DataType::String)?; // Cast stop_id to String (Utf8)
+        let stops = stops
+            .str()?
+            .into_iter()
+            .map(|opt| opt.expect("Missing stop_id")); // Unwrap stop_id or raise error
 
-            let next_row = selected_columns.get_row(i + 1)?.0;
-            let next_stop = get_row_string(&next_row, 2, "next_stop")?;
+        let arrival_times = selected_columns
+            .column("arrival_time")?
+            .cast(&DataType::UInt32)?; // Cast arrival_time to u32
+        let arrival_times = arrival_times
+            .u32()?
+            .into_iter()
+            .map(|opt| opt.expect("Missing arrival_time")); // Unwrap arrival_time or raise error
 
-            let route_id = get_row_string(&row, 4, "row_id")?;
-            let wheelchair_accessible = matches!(
-                row.get(5)
-                    .unwrap_or(&AnyValue::Int32(0))
-                    .try_extract()
-                    .unwrap_or(0),
-                1
-            );
+        let departure_times = selected_columns
+            .column("departure_time")?
+            .cast(&DataType::UInt32)?; // Cast departure_time to u32
+        let departure_times = departure_times
+            .u32()?
+            .into_iter()
+            .map(|opt| opt.expect("Missing departure_time")); // Unwrap departure_time or raise error
 
-            // Departure time from source stop
-            let departure_time: u32 = row[1].try_extract()?;
-            // Arrival time at target stop
-            let arrival_time: u32 = next_row[0].try_extract()?;
-            if departure_time > arrival_time {
-                Err(Error::NegativeWeight(format!(
-                    "Negative weight detected: {stop_id} -> {next_stop}"
-                )))?;
-            }
+        let route_ids = selected_columns
+            .column("route_id")?
+            .cast(&DataType::String)?; // Cast route_id to String (Utf8)
+        let route_ids = route_ids
+            .str()?
+            .into_iter()
+            .map(|opt| opt.expect("Missing route_id")); // Unwrap route_id or raise error
 
+        // zip all columns into a single iterator
+        // Zipping the iterators
+        let zipped = stops
+            .zip(arrival_times)
+            .zip(departure_times)
+            .zip(route_ids)
+            .tuple_windows();
+
+        for (
+            (((current_stop, current_arrival_time), _), current_route_id),
+            ((next_stop, next_arrival_time), _),
+        ) in zipped
+        {
             let route = Trip::new(
-                departure_time,
-                arrival_time,
-                route_id,
-                wheelchair_accessible,
+                current_arrival_time,
+                next_arrival_time,
+                String::from(current_route_id),
+                false,
             );
 
             let source_node = *node_id_map
-                .get(&stop_id)
-                .ok_or_else(|| Error::NodeNotFound(stop_id.clone()))?;
+                .get(current_stop)
+                .ok_or_else(|| Error::NodeNotFound(String::from(current_stop)))?;
             let target_node = *node_id_map
-                .get(&next_stop)
-                .ok_or_else(|| Error::NodeNotFound(next_stop.clone()))?;
+                .get(next_stop.0)
+                .ok_or_else(|| Error::NodeNotFound(String::from(next_stop.0)))?;
 
             if let Some(edge) = transit_graph.find_edge(source_node, target_node) {
                 let edge_data = transit_graph.edge_weight_mut(edge).unwrap();
@@ -266,6 +274,7 @@ fn add_edges_to_graph(
                 );
             }
         }
+
         Ok(selected_columns)
     })?;
 

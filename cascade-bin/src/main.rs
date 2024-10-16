@@ -1,12 +1,12 @@
 use cascade_core::prelude::*;
 
-use std::path::PathBuf;
 use geo::Point;
+use std::path::PathBuf;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     //let gtfs_path = get_user_input().unwrap();
-    let gtfs_path: PathBuf = "files/SPB".into();
-    let pbf_path: PathBuf  = "/home/chingiz/Rust/osm/roads_SZ.pbf".into();
+    let gtfs_path: PathBuf = "files/Chelyabinsk".into();
+    let pbf_path: PathBuf = "/home/chingiz/Rust/osm/roads_chel.pbf".into();
 
     let feed_args = FeedArgs {
         gtfs_path,

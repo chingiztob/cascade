@@ -53,7 +53,7 @@ impl SnappedPoint {
         &self.index
     }
 
-    #[must_use] 
+    #[must_use]
     pub const fn distance(&self) -> &f64 {
         &self.distance
     }

@@ -13,7 +13,7 @@ use crate::Error;
 ///
 /// This function reads OSM data, filters it by the "highway" tag, and constructs a directed graph
 /// (`DiGraph`) where nodes represent OSM nodes and edges represent OSM ways.
-/// 
+///
 /// The function then identifies the largest connected component in the graph and creates a new
 /// graph containing only this component. This new graph is used to build an R-tree for spatial
 /// indexing.
