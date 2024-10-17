@@ -1,4 +1,9 @@
-use std::collections::HashMap;
+/*!
+Wrappers for main cascade-core types
+and graph functions
+*/
+
+use ahash::{HashMap, HashMapExt};
 
 use cascade_core::graph::GraphNode;
 use cascade_core::prelude::*;

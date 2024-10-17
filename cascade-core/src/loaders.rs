@@ -62,13 +62,11 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
 ) -> Result<(DataFrame, DataFrame), Error> {
     let gtfs_path = PathBuf::from(path.as_ref());
 
-    // Reading necessary CSV files
     let mut stops_df = read_csv(gtfs_path.join("stops.txt"))?;
     let stop_times_df = read_csv(gtfs_path.join("stop_times.txt"))?;
     let mut trips_df = read_csv(gtfs_path.join("trips.txt"))?;
     let calendar_df = read_csv(gtfs_path.join("calendar.txt"))?;
 
-    // Cast stop_id column to String
     let stops_df = stops_df
         .with_column(stops_df.column("stop_id")?.cast(&DataType::String)?)?
         .clone();
@@ -94,7 +92,6 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
         JoinArgs::new(JoinType::Inner),
     )?;
 
-    // Further filter stop_times_df by departure time and duration
     let filtered_stop_times_df =
         filter_by_time(&mut valid_stop_times, departure, departure + duration)?;
 
@@ -194,17 +191,14 @@ fn add_edges_to_graph(
         let stops = selected_columns
             .column("stop_id")?
             .cast(&DataType::String)?;
-        let stops = stops
-            .str()?
-            .into_iter()
-            .map(|opt| opt.expect("Missing stop_id"));
+        let stops = stops.str()?.iter().map(|opt| opt.expect("Missing stop_id"));
 
         let arrival_times = selected_columns
             .column("arrival_time")?
             .cast(&DataType::UInt32)?;
         let arrival_times = arrival_times
             .u32()?
-            .into_iter()
+            .iter()
             .map(|opt| opt.expect("Missing arrival_time"));
 
         let departure_times = selected_columns
@@ -212,7 +206,7 @@ fn add_edges_to_graph(
             .cast(&DataType::UInt32)?;
         let departure_times = departure_times
             .u32()?
-            .into_iter()
+            .iter()
             .map(|opt| opt.expect("Missing departure_time"));
 
         let route_ids = selected_columns
@@ -220,7 +214,7 @@ fn add_edges_to_graph(
             .cast(&DataType::String)?;
         let route_ids = route_ids
             .str()?
-            .into_iter()
+            .iter()
             .map(|opt| opt.expect("Missing route_id"));
 
         // zip all columns into a single iterator
@@ -235,6 +229,14 @@ fn add_edges_to_graph(
             (((next_stop, _), next_arrival_time), _),
         ) in zipped
         {
+            // Invalid datasets with negative edge weights
+            // will cause invalid Dijkstra routing
+            if current_arrival_time > next_arrival_time {
+                Err(Error::NegativeWeight(format!(
+                    "Negative weight detected: {current_stop} -> {next_stop}"
+                )))?;
+            }
+
             add_edge_to_graph(
                 transit_graph,
                 node_id_map,

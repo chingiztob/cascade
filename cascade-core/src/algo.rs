@@ -94,12 +94,10 @@ fn time_dependent_dijkstra(
     target: Option<NodeIndex>,
     start_time: u32,
 ) -> HashMap<NodeIndex, f64> {
-    let number_of_nodes = graph.node_count();
+    let mut visited = HashSet::new();
+    let mut scores: HashMap<NodeIndex, f64> = HashMap::new();
 
-    let mut visited = HashSet::with_capacity(number_of_nodes);
-    let mut scores: HashMap<NodeIndex, f64> = HashMap::with_capacity(number_of_nodes);
-
-    let mut visit_next = BinaryHeap::with_capacity(number_of_nodes);
+    let mut visit_next = BinaryHeap::new();
     scores.insert(start, 0.0);
     visit_next.push(MinScored(0.0, (start, start_time)));
 

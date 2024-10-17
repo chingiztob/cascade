@@ -1,3 +1,8 @@
+/*!
+Wrappers for main routing functions of
+underlying cascade-core crate
+*/
+
 use ahash::HashMap;
 
 use cascade_core::prelude::*;
