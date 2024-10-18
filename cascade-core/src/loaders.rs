@@ -59,12 +59,33 @@ fn filter_by_time(df: &mut DataFrame, departure: u32, duration: u32) -> Result<D
     Ok(df.filter(&mask)?)
 }
 
+fn validate_feed(path: &impl AsRef<Path>) -> Result<(), Error> {
+    let path = path.as_ref();
+
+    if !path.is_dir() {
+        return Err(Error::InvalidData("Invalid directory".to_string()));
+    }
+
+    let required = ["stops.txt", "trips.txt", "stop_times.txt", "calendar.txt"];
+
+    for file in required {
+        if !path.join(file).exists() {
+            return Err(Error::InvalidData(format!(
+                "required file {file} not exists"
+            )));
+        }
+    }
+
+    Ok(())
+}
+
 pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
     path: P,
     departure: u32,
     duration: u32,
     weekday: &str,
 ) -> Result<(DataFrame, DataFrame), Error> {
+    validate_feed(&path)?;
     let gtfs_path = PathBuf::from(path.as_ref());
 
     let mut stops_df = read_csv(gtfs_path.join("stops.txt"))?;

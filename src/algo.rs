@@ -150,7 +150,7 @@ impl PyPoint {
     fn __str__(&self) -> String {
         format!("{self:?}")
     }
-    
+
     #[new]
     #[must_use]
     pub fn new(x: f64, y: f64, id: String) -> Self {
