@@ -29,8 +29,13 @@ fn read_csv(file_path: PathBuf) -> Result<DataFrame, Error> {
 fn hhmmss_to_sec(str_val: &Series) -> Series {
     str_val
         .str()
-        .unwrap()
-        .into_iter()
+        .unwrap_or_else(|_| {
+            panic!(
+                "invalid time format for {}. Expected HH:MM:SS",
+                str_val.name()
+            )
+        })
+        .iter()
         .map(|opt_time: Option<&str>| {
             let time = opt_time.unwrap();
             let parts: Vec<&str> = time.split(':').collect();
@@ -129,9 +134,9 @@ fn add_nodes_to_graph(
     transit_graph: &mut TransitGraph,
     node_id_map: &mut HashMap<String, NodeIndex>,
 ) -> Result<(), Error> {
-    let stop_ids = stops_df.column("stop_id")?.str()?.into_iter();
-    let stop_lons = stops_df.column("stop_lon")?.f64()?.into_iter();
-    let stop_lats = stops_df.column("stop_lat")?.f64()?.into_iter();
+    let stop_ids = stops_df.column("stop_id")?.str()?.iter();
+    let stop_lons = stops_df.column("stop_lon")?.f64()?.iter();
+    let stop_lats = stops_df.column("stop_lat")?.f64()?.iter();
 
     for (stop_id, (stop_lon, stop_lat)) in stop_ids.zip(stop_lons.zip(stop_lats)) {
         let stop_id = stop_id.ok_or_else(|| Error::MissingValue("stop_id".to_string()))?;

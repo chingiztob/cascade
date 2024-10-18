@@ -124,7 +124,6 @@ fn time_dependent_dijkstra(
             }
 
             let next_score = node_score + travel_time;
-
             let next_time = current_time + travel_time as u32;
 
             match scores.entry(next) {

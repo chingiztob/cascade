@@ -8,6 +8,7 @@ use ahash::HashMap;
 use cascade_core::prelude::*;
 use geo::Point;
 use pyo3::prelude::*;
+use pyo3::types::PyString;
 use rayon::prelude::*;
 
 use crate::graph::PyTransitGraph;
@@ -17,7 +18,7 @@ use crate::graph::PyTransitGraph;
 /// # Arguments
 /// * `graph` - A reference to a `TransitGraph` object.
 /// * `start` - The source node index.
-/// * `start_time` - The starting time in seconds since midnight.
+/// * `dep_time` - The departure time in seconds since midnight.
 /// * `x` - The x coordinate of the source point in 4326.
 /// * `y` - The y coordinate of the source point in 4326.
 /// # Returns
@@ -46,7 +47,7 @@ pub fn single_source_shortest_path_rs(
 /// # Arguments
 /// * `graph` - A reference to a `TransitGraph` object.
 /// * `start` - The source node index.
-/// * `start_time` - The starting time in seconds since midnight.
+/// * `dep_time` - The departure time in seconds since midnight.
 /// * `source_x` - The x coordinate of the source point in 4326.
 /// * `source_y` - The y coordinate of the source point in 4326.
 /// * `target_x` - The x coordinate of the target point in 4326.
@@ -79,6 +80,7 @@ pub fn calculate_od_matrix(
     graph: &PyTransitGraph,
     nodes: Vec<PyPoint>,
     dep_time: u32,
+    py: Python<'_>,
 ) -> PyResult<HashMap<String, HashMap<String, f64>>> {
     let graph = &graph.graph;
 
@@ -91,11 +93,16 @@ pub fn calculate_od_matrix(
         })
         .collect::<Result<Vec<_>, PyErr>>()?;
 
+    py.check_signals()?;
+
     // Map of node indices to original PyPoint IDs for lookup
     let id_map: HashMap<usize, &String> = snapped_points
         .iter()
         .map(|(id, sn)| (sn.index().index(), id))
         .collect();
+
+    println!("Hot loop started, SIGINT not available");
+    py.check_signals()?;
 
     // Collect the OD matrix with PyPoint IDs as keys
     let od_matrix: HashMap<String, HashMap<String, f64>> = snapped_points
@@ -126,7 +133,7 @@ fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<SnappedPoint> {
 
 /// A Python wrapper to pass coordinates with an ID to Rust backend.
 #[pyclass]
-#[derive(Clone)] // This allow backwards conversion from python PyPoint
+#[derive(Clone, Debug)] // This allow backwards conversion from python PyPoint
 pub struct PyPoint {
     pub x: f64,
     pub y: f64,
@@ -135,6 +142,15 @@ pub struct PyPoint {
 
 #[pymethods]
 impl PyPoint {
+    fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
+        let class_name: Bound<'_, PyString> = slf.get_type().qualname()?;
+        Ok(format!("{class_name}"))
+    }
+
+    fn __str__(&self) -> String {
+        format!("{self:?}")
+    }
+    
     #[new]
     #[must_use]
     pub fn new(x: f64, y: f64, id: String) -> Self {
