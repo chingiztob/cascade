@@ -21,6 +21,8 @@ from cascade._cascade_core import (
     PyPoint,
 )
 
+from cascade.validators import validate_feed
+
 __all__ = [
     "PyTransitGraph",
     "PyPoint",
@@ -28,4 +30,5 @@ __all__ = [
     "single_source_shortest_path",
     "shortest_path",
     "calculate_od_matrix",
+    "validate_feed",
 ]

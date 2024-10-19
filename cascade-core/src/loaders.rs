@@ -177,8 +177,8 @@ fn add_nodes_to_graph(
 fn select_columns(sorted_group: &DataFrame) -> Vec<&str> {
     // Check if the wheelchair_accessible column exists and select columns accordingly
     let columns: Vec<&str> = if sorted_group
-        .get_column_names()
-        .contains(&&PlSmallStr::from_str("wheelchair_accessible"))
+        .get_column_names_str()
+        .contains(&"wheelchair_accessible")
     {
         vec![
             "arrival_time",

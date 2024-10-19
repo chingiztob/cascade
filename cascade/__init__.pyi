@@ -1,4 +1,5 @@
 # ruff: noqa: F401
+from .validators import validate_feed
 from typing import Dict, Tuple, List
 
 class PyTransitGraph:

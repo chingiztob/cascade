@@ -80,7 +80,6 @@ pub fn calculate_od_matrix(
     graph: &PyTransitGraph,
     nodes: Vec<PyPoint>,
     dep_time: u32,
-    py: Python<'_>,
 ) -> PyResult<HashMap<String, HashMap<String, f64>>> {
     let graph = &graph.graph;
 
@@ -93,20 +92,16 @@ pub fn calculate_od_matrix(
         })
         .collect::<Result<Vec<_>, PyErr>>()?;
 
-    py.check_signals()?;
-
     // Map of node indices to original PyPoint IDs for lookup
     let id_map: HashMap<usize, &String> = snapped_points
         .iter()
         .map(|(id, sn)| (sn.index().index(), id))
         .collect();
 
-    println!("Hot loop started, SIGINT not available");
-    py.check_signals()?;
-
     // Collect the OD matrix with PyPoint IDs as keys
     let od_matrix: HashMap<String, HashMap<String, f64>> = snapped_points
         .par_iter()
+        .with_min_len(100)
         .map(|(id, node)| {
             let shortest_paths =
                 cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
