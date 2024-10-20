@@ -1,5 +1,4 @@
 # ruff: noqa: F401
-from .validators import validate_feed
 from typing import Dict, Tuple, List
 
 class PyTransitGraph:
@@ -111,4 +110,18 @@ def calculate_od_matrix(
 ) -> Dict[int, Dict[int, float]]:
     """
     Calculates the Origin-Destination (OD) matrix for a given graph, list of nodes, and departure time."""
+    ...
+
+# Python implemented functions
+# Path: cascade/validators.py
+
+def validate_feed(gtfs_path: str) -> bool:
+    """
+    Validates the GTFS feed located at the specified path.
+
+    This function checks for the presence of required GTFS files and validates
+    their contents. It ensures that necessary columns are present and that
+    relationships between IDs in different files are consistent. Additionally,
+    it verifies the format of time columns in the stop_times.txt file.
+    """
     ...

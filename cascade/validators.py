@@ -19,7 +19,14 @@ def _validate_id_rels(df1, col1, df2, col2, filename1, filename2):
 
 
 def validate_feed(gtfs_path: str) -> bool:
-    """docstring"""
+    """
+    Validates the GTFS feed located at the specified path.
+
+    This function checks for the presence of required GTFS files and validates
+    their contents. It ensures that necessary columns are present and that
+    relationships between IDs in different files are consistent. Additionally,
+    it verifies the format of time columns in the stop_times.txt file.
+    """
     files = [
         "agency.txt",
         "stops.txt",
@@ -29,9 +36,12 @@ def validate_feed(gtfs_path: str) -> bool:
         "calendar.txt",
     ]
 
-    if not os.path.isdir(gtfs_path) or any(
-        not os.path.isfile(os.path.join(gtfs_path, file)) for file in files
-    ):
+    is_valid_directory = os.path.isdir(gtfs_path)
+    are_all_files_present = all(
+        os.path.isfile(os.path.join(gtfs_path, file)) for file in files
+    )
+
+    if not is_valid_directory or not are_all_files_present:
         warnings.warn("Invalid GTFS path or missing required files.")
         return False
 
@@ -39,7 +49,9 @@ def validate_feed(gtfs_path: str) -> bool:
     stops_df = pl.read_csv(os.path.join(gtfs_path, "stops.txt"))
     routes_df = pl.read_csv(os.path.join(gtfs_path, "routes.txt"))
     trips_df = pl.read_csv(os.path.join(gtfs_path, "trips.txt"))
-    stop_times_df = pl.read_csv(os.path.join(gtfs_path, "stop_times.txt"), infer_schema_length=10000)
+    stop_times_df = pl.read_csv(
+        os.path.join(gtfs_path, "stop_times.txt"), infer_schema_length=10000
+    )
 
     critical_errors = not all(
         [
