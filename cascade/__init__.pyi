@@ -109,7 +109,7 @@ def calculate_od_matrix(
     graph: PyTransitGraph, points: List[PyPoint], dep_time: int
 ) -> Dict[int, Dict[int, float]]:
     """
-    Calculates the Origin-Destination (OD) matrix for a given graph, list of nodes, and departure time."""
+    Calculates the Origin-Destination (OD) matrix for a given list of nodes, and departure time."""
     ...
 
 # Python implemented functions

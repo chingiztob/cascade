@@ -101,7 +101,7 @@ pub fn calculate_od_matrix(
     // Collect the OD matrix with PyPoint IDs as keys
     let od_matrix: HashMap<String, HashMap<String, f64>> = snapped_points
         .par_iter()
-        .with_min_len(100)
+        .with_min_len(100) // do not split arrays smaller than 100 elements
         .map(|(id, node)| {
             let shortest_paths =
                 cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
