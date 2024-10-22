@@ -149,6 +149,18 @@ pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), E
     let rtree = graph.rtree_ref().unwrap().clone();
 
     for node in graph.node_indices() {
+        // check if there is already a transfer edge
+        // This is required to avoid creating duplicate transfer edges
+        // when merging multiple transit graphs on top of main street graph
+        // (Work in progress)
+        let already_connected = graph
+            .edges(node)
+            .any(|edge| matches!(edge.weight(), GraphEdge::Transfer(_)));
+
+        if already_connected {
+            continue;
+        }
+
         let weight = graph
             .node_weight(node)
             .ok_or_else(|| Error::MissingValue("Node weight not found".to_string()))?;

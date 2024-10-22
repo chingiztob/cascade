@@ -22,7 +22,6 @@ pub fn create_graph(
     duration: u32,
     weekday: &str,
 ) -> PyResult<PyTransitGraph> {
-    // create pathbufs from the input strings
     let gtfs_path = std::path::PathBuf::from(gtfs_path);
     let pbf_path = std::path::PathBuf::from(pbf_path);
 
@@ -91,6 +90,34 @@ impl PyTransitGraph {
     #[must_use]
     pub fn get_mapping(&self) -> HashMap<usize, PyGraphNode> {
         self.id_mapping.clone()
+    }
+
+    #[warn(unstable_features)]
+    pub fn extend_with_transit(
+        &mut self,
+        gtfs_path: &str,
+        departure: u32,
+        duration: u32,
+        weekday: &str,
+    ) -> PyResult<()> {
+        let gtfs_path = std::path::PathBuf::from(gtfs_path);
+        // dummy pbf path, not used in this case
+        // but required by the FeedArgs struct
+        let pbf_path = gtfs_path.clone();
+
+        let feed_args = FeedArgs {
+            gtfs_path,
+            pbf_path,
+            departure,
+            duration,
+            weekday,
+        };
+
+        self.graph.extend_with_transit(&feed_args).map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("Graph creation failed: {e:?}"))
+        })?;
+
+        Ok(())
     }
 }
 

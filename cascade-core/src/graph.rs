@@ -77,7 +77,7 @@ impl TransitGraph {
     ///
     /// let feed_args = FeedArgs {
     ///     gtfs_path: "path/to/City_GTFS",
-    ///     edgelist_path: "path/to/City.edgelist",
+    ///     pbf_path: "path/to/City.pbf",
     ///     departure: 0,
     ///     duration: 86400,
     ///     weekday: "monday",
@@ -109,7 +109,29 @@ impl TransitGraph {
         // Connect transit stops in graph to walk nodes
         connectors::connect_stops_to_streets(&mut walk_graph)?;
 
+        walk_graph.shrink_to_fit();
+
         Ok(walk_graph)
+    }
+
+    /// Add transit data from another GTFS feed on top of existing graph.
+    /// Currntly uses straightforward logic with adddition of all stops and
+    /// transit edges to initial graph.
+    #[warn(unstable_features)]
+    pub fn extend_with_transit(&mut self, feed_args: &FeedArgs) -> Result<(), Error> {
+        let (stops_df, stop_times_df) = loaders::prepare_dataframes(
+            &feed_args.gtfs_path,
+            feed_args.departure,
+            feed_args.duration,
+            feed_args.weekday,
+        )?;
+
+        let initial_graph = loaders::new_graph(&stops_df, &stop_times_df)?;
+        loaders::merge_graphs(self, &initial_graph);
+
+        connectors::connect_stops_to_streets(self)?;
+
+        Ok(())
     }
 
     /// Add a node to underlying the graph

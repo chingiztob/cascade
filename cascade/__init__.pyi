@@ -10,6 +10,25 @@ class PyTransitGraph:
         """Get mapping of graph raw node ids to `PyGraphNode` objects."""
         ...
 
+    def extend_with_transit(
+        self, gtfs_path: str, departure: int, duration: int, weekday: str
+    ) -> None:
+        """
+        Extends the graph with transit data from GTFS feed.
+
+        Parameters
+        ----------
+        gtfs_path : str
+            Path to the GTFS files.
+        departure : int
+            Departure time in seconds.
+        duration : int
+            Time period from departure for which the graph will be loaded.
+        weekday : str
+            Day of the week in lowercase (e.g., 'monday').
+        """
+        ...
+
 class PyGraphNode:
     """Node of transit graph. Contains information about node type, id and geometry."""
 
