@@ -13,14 +13,13 @@ for an overview of the features being ported and enhanced in this version.
 """
 
 from cascade._cascade_core import (
-    PyTransitGraph,
-    create_graph,
-    single_source_shortest_path,
-    shortest_path,
-    calculate_od_matrix,
     PyPoint,
+    PyTransitGraph,
+    calculate_od_matrix,
+    create_graph,
+    shortest_path,
+    single_source_shortest_path,
 )
-
 from cascade.validators import validate_feed
 
 __all__ = [

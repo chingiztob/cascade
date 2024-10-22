@@ -1,5 +1,5 @@
 # ruff: noqa: F401
-from typing import Dict, Tuple, List
+from typing import Dict, List, Tuple
 
 class PyTransitGraph:
     """Multimodal graph of transit system, implemented with `PetGraph`."""
@@ -102,14 +102,16 @@ def shortest_path(
     target_x: float,
     target_y: float,
 ) -> float:
-    """Finds the shortest path between two points in a time-dependent graph using Dijkstra's algorithm."""
+    """Finds the shortest path between two points
+    in a time-dependent graph using Dijkstra's algorithm."""
     ...
 
 def calculate_od_matrix(
     graph: PyTransitGraph, points: List[PyPoint], dep_time: int
 ) -> Dict[int, Dict[int, float]]:
     """
-    Calculates the Origin-Destination (OD) matrix for a given list of nodes, and departure time."""
+    Calculates the Origin-Destination (OD) matrix
+    for a given list of nodes, and departure time."""
     ...
 
 # Python implemented functions

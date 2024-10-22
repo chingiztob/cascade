@@ -1,17 +1,25 @@
-import warnings
 import os
+import warnings
+from typing import List
 
 import polars as pl
 
 
-def _validate_columns(df, required_columns, filename):
+def _validate_columns(df: pl.DataFrame, required_columns: List[str], filename: str):
     if df.is_empty() or not all(col in df.columns for col in required_columns):
         print(f"{filename} is invalid or missing required columns {required_columns}.")
         return False
     return True
 
 
-def _validate_id_rels(df1, col1, df2, col2, filename1, filename2):
+def _validate_id_rels(
+    df1: pl.DataFrame,
+    col1: str,
+    df2: pl.DataFrame,
+    col2: str,
+    filename1: str,
+    filename2: str,
+):
     if not set(df1[col1].to_list()).issubset(set(df2[col2].to_list())):
         print(f"Mismatch in {col1} between {filename1} and {filename2}.")
         return False
@@ -42,7 +50,7 @@ def validate_feed(gtfs_path: str) -> bool:
     )
 
     if not is_valid_directory or not are_all_files_present:
-        warnings.warn("Invalid GTFS path or missing required files.")
+        warnings.warn("Invalid GTFS path or missing required files.", stacklevel=2)
         return False
 
     agency_df = pl.read_csv(os.path.join(gtfs_path, "agency.txt"))
