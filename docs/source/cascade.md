@@ -34,18 +34,3 @@ osmium tags-filter -o highways.osm.pbf input.pbf w/highway
 ```python
 pip install cascade
 ```
-
-## Contents
-
-```{toctree}
-  :maxdepth: 2
-  :caption: Contents:
-```
-
-## Documentation
-
-```{toctree}
-  :maxdepth: 1
-
-cascade.md
-```

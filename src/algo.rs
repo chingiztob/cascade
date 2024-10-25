@@ -108,9 +108,7 @@ pub fn calculate_od_matrix(
                     .into_iter()
                     // For each (k: NodeIndex), find the `id` of the destination point in the id_map
                     .filter_map(|(k, v)| {
-                        id_map
-                            .get(&k.index())
-                            .map(|&dest_id| (dest_id.clone(), v + node.distance()))
+                        id_map.get(&k.index()).map(|&dest_id| (dest_id.clone(), v))
                     })
                     .collect::<HashMap<String, f64>>();
             (id.clone(), shortest_paths)
