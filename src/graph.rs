@@ -44,7 +44,7 @@ pub fn create_graph(
 }
 
 fn create_mapping(graph: &TransitGraph) -> HashMap<usize, PyGraphNode> {
-    let mut id_mapping = HashMap::new();
+    let mut id_mapping = HashMap::with_capacity(graph.node_count());
     for node in graph.into_inner_graph().node_indices() {
         let node_data = graph.into_inner_graph().node_weight(node).unwrap();
 
@@ -145,13 +145,27 @@ impl PyGraphNode {
         self.node_type.clone()
     }
 
+    #[getter(id)]
     #[must_use]
     pub fn get_id(&self) -> String {
         self.id.clone()
     }
 
+    #[getter(geometry)]
     #[must_use]
     pub fn get_geometry(&self) -> (f64, f64) {
         (self.geometry.x(), self.geometry.y())
+    }
+
+    #[getter(x)]
+    #[must_use]
+    pub fn get_x(&self) -> f64 {
+        self.geometry.x()
+    }
+
+    #[getter(y)]
+    #[must_use]
+    pub fn get_y(&self) -> f64 {
+        self.geometry.y()
     }
 }

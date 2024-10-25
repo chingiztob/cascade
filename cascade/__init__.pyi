@@ -1,5 +1,5 @@
 # ruff: noqa: F401
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 class PyTransitGraph:
     """Multimodal graph of transit system, implemented with `PetGraph`."""
@@ -33,17 +33,12 @@ class PyGraphNode:
     """Node of transit graph. Contains information about node type, id and geometry."""
 
     def get_node_type(self) -> str: ...
-    def get_id(self) -> str: ...
-    def get_geometry(self) -> Tuple[float, float]: ...
 
 class PyPoint:
     """Spatial point with ID and x, y coords.
     Required to correctly pass data across Rust/Python ffi boundary"""
 
     def __new__(cls, x: float, y: float, id: str) -> PyPoint: ...
-    def x(self) -> float: ...
-    def y(self) -> float: ...
-    def id(self) -> str: ...
 
 def create_graph(
     gtfs_path: str, pbf_path: str, departure: int, duration: int, weekday: str

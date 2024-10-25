@@ -125,7 +125,7 @@ fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<SnappedPoint> {
 }
 
 /// A Python wrapper to pass coordinates with an ID to Rust backend.
-#[pyclass]
+#[pyclass(get_all)]
 #[derive(Clone, Debug)] // This allow backwards conversion from python PyPoint
 pub struct PyPoint {
     pub x: f64,
@@ -148,20 +148,5 @@ impl PyPoint {
     #[must_use]
     pub fn new(x: f64, y: f64, id: String) -> Self {
         Self { x, y, id }
-    }
-
-    #[must_use]
-    pub fn x(&self) -> f64 {
-        self.x
-    }
-
-    #[must_use]
-    pub fn y(&self) -> f64 {
-        self.y
-    }
-
-    #[must_use]
-    pub fn id(&self) -> String {
-        self.id.clone()
     }
 }
