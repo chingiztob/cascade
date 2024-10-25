@@ -2,7 +2,12 @@ import os
 import warnings
 from typing import List
 
-import polars as pl
+try:
+    import polars as pl
+
+    polars_installed = True
+except ImportError:
+    polars_installed = False
 
 
 def _validate_columns(df: pl.DataFrame, required_columns: List[str], filename: str):
@@ -34,7 +39,18 @@ def validate_feed(gtfs_path: str) -> bool:
     their contents. It ensures that necessary columns are present and that
     relationships between IDs in different files are consistent. Additionally,
     it verifies the format of time columns in the stop_times.txt file.
+
+    Notes
+    -----
+    This operation requires that :mod:`validation` is installed.
     """
+
+    if not polars_installed:
+        raise ImportError(
+            "The 'validators' feature is not installed. "
+            "Please install it with: pip install cascade[validation]"
+        )
+
     files = [
         "agency.txt",
         "stops.txt",

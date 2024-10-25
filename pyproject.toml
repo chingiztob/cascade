@@ -12,7 +12,9 @@ classifiers = [
 ]
 dynamic = ["version"]
 license = { text = "MIT OR Apache-2.0" }
-dependencies = ["polars >= 1.9.0"]
+
+[project.optional-dependencies]
+validation = ["polars >= 1.9.0"]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
