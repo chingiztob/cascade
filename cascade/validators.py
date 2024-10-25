@@ -2,6 +2,8 @@ import os
 import warnings
 from typing import List
 
+from .unstable import unstable
+
 try:
     import polars as pl
 
@@ -30,7 +32,7 @@ def _validate_id_rels(
         return False
     return True
 
-
+@unstable()
 def validate_feed(gtfs_path: str) -> bool:
     """
     Validates the GTFS feed located at the specified path.
