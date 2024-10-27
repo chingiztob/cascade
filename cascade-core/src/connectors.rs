@@ -8,22 +8,14 @@ use crate::graph::{GraphEdge, GraphNode, TransitGraph, WalkEdge};
 use crate::{Error, WALK_SPEED};
 
 /// Any object that can be snapped to the nearest node in the graph.
-/// The object should have a geometry method that returns a `geo::Point`.
+/// The object should have a geometry method that returns its representation as `geo::Point`.
 pub(crate) trait Snappable {
     fn geometry(&self) -> &Point;
-    fn snap(self, index: NodeIndex, distance: f64) -> SnappedPoint;
 }
 
 impl Snappable for Point {
     fn geometry(&self) -> &Point {
         self
-    }
-    fn snap(self, index: NodeIndex, distance: f64) -> SnappedPoint {
-        SnappedPoint {
-            geometry: self,
-            index,
-            distance,
-        }
     }
 }
 
@@ -44,8 +36,16 @@ impl SnappedPoint {
             .rtree_ref()
             .ok_or_else(|| Error::MissingValue("Graph spatial index is not set".to_string()))?;
 
-        let point = snap_single_point(geometry, rtree)?;
+        let point = snap_single_point(&geometry, rtree)?;
         Ok(point)
+    }
+
+    fn new(geometry: Point, index: NodeIndex, distance: f64) -> SnappedPoint {
+        SnappedPoint {
+            geometry,
+            index,
+            distance,
+        }
     }
 
     #[must_use]
@@ -57,6 +57,48 @@ impl SnappedPoint {
     pub const fn distance(&self) -> &f64 {
         &self.distance
     }
+}
+
+/// Helper function to find the nearest point in the `RTree` and calculate the distance.
+/// Returns a tuple of the nearest node index and the calculated distance.
+fn find_nearest_point_and_calculate_distance(
+    point: &IndexedPoint,
+    tree: &RTree<IndexedPoint>,
+) -> Result<(NodeIndex, f64), Error> {
+    if let Some(nearest_point) = tree.nearest_neighbor(point) {
+        let distance = point.geometry.haversine_distance(&nearest_point.geometry) / WALK_SPEED;
+        let node = nearest_point.index.ok_or_else(|| {
+            Error::NodeNotFound(format!(
+                "Nearest node not found for point {:?}",
+                point.geometry
+            ))
+        })?;
+        Ok((node, distance))
+    } else {
+        Err(Error::NodeNotFound(format!(
+            "Nearest node not found for point {:?}",
+            point.geometry
+        )))
+    }
+}
+
+/// Snaps a single point to the nearest node in the `RTree`.
+pub(crate) fn snap_single_point<T: Snappable>(
+    point: &T,
+    tree: &RTree<IndexedPoint>,
+) -> Result<SnappedPoint, Error> {
+    let point_to_snap = IndexedPoint {
+        index: None,
+        geometry: *point.geometry(),
+    };
+
+    let (nearest_node, distance) = find_nearest_point_and_calculate_distance(&point_to_snap, tree)?;
+
+    Ok(SnappedPoint::new(
+        *point.geometry(),
+        nearest_node,
+        distance,
+    ))
 }
 
 /// Structure representing a graph node in the `RTree`.
@@ -104,46 +146,6 @@ pub(crate) fn build_rtree(graph: &DiGraph<GraphNode, GraphEdge>) -> RTree<Indexe
     RTree::bulk_load(index_geo_vec)
 }
 
-/// Helper function to find the nearest point in the `RTree` and calculate the distance.
-/// Returns a tuple of the nearest node index and the calculated distance.
-fn find_nearest_point_and_calculate_distance(
-    point: &IndexedPoint,
-    tree: &RTree<IndexedPoint>,
-    speed: f64,
-) -> Result<(NodeIndex, f64), Error> {
-    if let Some(nearest_point) = tree.nearest_neighbor(point) {
-        let distance = point.geometry.haversine_distance(&nearest_point.geometry) / speed;
-        let node = nearest_point.index.ok_or_else(|| {
-            Error::NodeNotFound(format!(
-                "Nearest node not found for point {:?}",
-                point.geometry
-            ))
-        })?;
-        Ok((node, distance))
-    } else {
-        Err(Error::NodeNotFound(format!(
-            "Nearest node not found for point {:?}",
-            point.geometry
-        )))
-    }
-}
-
-/// Snaps a single point to the nearest node in the `RTree`.
-pub(crate) fn snap_single_point<T: Snappable>(
-    point: T,
-    tree: &RTree<IndexedPoint>,
-) -> Result<SnappedPoint, Error> {
-    let point_to_snap = IndexedPoint {
-        index: None,
-        geometry: *point.geometry(),
-    };
-
-    let (nearest_node, distance) =
-        find_nearest_point_and_calculate_distance(&point_to_snap, tree, 1.39)?;
-
-    Ok(point.snap(nearest_node, distance))
-}
-
 /// Connects Transit nodes (stops) to the nearest walk nodes.
 pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), Error> {
     let rtree = graph.rtree_ref().unwrap().clone();
@@ -153,11 +155,10 @@ pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), E
         // This is required to avoid creating duplicate transfer edges
         // when merging multiple transit graphs on top of main street graph
         // (Work in progress)
-        let already_connected = graph
+        if graph
             .edges(node)
-            .any(|edge| matches!(edge.weight(), GraphEdge::Transfer(_)));
-
-        if already_connected {
+            .any(|edge| matches!(edge.weight(), GraphEdge::Transfer(_)))
+        {
             continue;
         }
 
@@ -172,7 +173,7 @@ pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), E
             };
 
             if let Ok((nearest_point_index, distance)) =
-                find_nearest_point_and_calculate_distance(&node_point, &rtree, WALK_SPEED)
+                find_nearest_point_and_calculate_distance(&node_point, &rtree)
             {
                 let edge = GraphEdge::Transfer(WalkEdge {
                     edge_weight: distance,
@@ -259,11 +260,12 @@ mod tests {
         let rtree = build_rtree(&graph);
 
         let point = Point::new(0.4, 0.4);
-        let snapped_point = snap_single_point(point, &rtree).unwrap();
+        let snapped_point = snap_single_point(&point, &rtree).unwrap();
         assert_eq!(snapped_point.geometry, point);
         assert_eq!(*snapped_point.index(), node1);
         assert!(
-            (*snapped_point.distance() - point.haversine_distance(&Point::new(0.0, 0.0)) / 1.39)
+            (*snapped_point.distance()
+                - point.haversine_distance(&Point::new(0.0, 0.0)) / WALK_SPEED)
                 .abs()
                 < f64::EPSILON
         );

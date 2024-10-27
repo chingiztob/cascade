@@ -134,15 +134,19 @@ impl TransitGraph {
         Ok(())
     }
 
-    /// Add a node to underlying the graph
-    pub(crate) fn add_node(&mut self, node: GraphNode) -> NodeIndex {
-        self.graph.add_node(node)
-    }
-
     /// Access the internal `DiGraph` object by immutable reference
     #[must_use]
     pub const fn into_inner_graph(&self) -> &DiGraph<GraphNode, GraphEdge> {
         &self.graph
+    }
+
+    pub(crate) fn rtree_ref(&self) -> Option<&RTree<IndexedPoint>> {
+        self.rtree.as_ref()
+    }
+
+    /// Add a node to underlying the graph
+    pub(crate) fn add_node(&mut self, node: GraphNode) -> NodeIndex {
+        self.graph.add_node(node)
     }
 
     /// Add an edge to the graph
@@ -153,10 +157,6 @@ impl TransitGraph {
         edge: GraphEdge,
     ) -> EdgeIndex {
         self.graph.add_edge(source, target, edge)
-    }
-
-    pub(crate) fn rtree_ref(&self) -> Option<&RTree<IndexedPoint>> {
-        self.rtree.as_ref()
     }
 
     pub(crate) fn sort_trips(&mut self) {
