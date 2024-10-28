@@ -40,14 +40,6 @@ impl SnappedPoint {
         Ok(point)
     }
 
-    fn new(geometry: Point, index: NodeIndex, distance: f64) -> SnappedPoint {
-        SnappedPoint {
-            geometry,
-            index,
-            distance,
-        }
-    }
-
     #[must_use]
     pub fn index(&self) -> &NodeIndex {
         &self.index
@@ -56,6 +48,35 @@ impl SnappedPoint {
     #[must_use]
     pub const fn distance(&self) -> &f64 {
         &self.distance
+    }
+}
+
+/// Structure representing a graph node in the `RTree`.
+/// The `RTree` requires a structure that implements the `Point` trait.
+/// Also we need to store the node index to be able to connect the transit nodes to the nearest walk nodes.
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub(crate) struct IndexedPoint {
+    pub(crate) index: Option<NodeIndex>,
+    pub(crate) geometry: Point,
+}
+
+impl RstarPoint for IndexedPoint {
+    type Scalar = f64;
+    const DIMENSIONS: usize = 2;
+
+    fn generate(mut generator: impl FnMut(usize) -> Self::Scalar) -> Self {
+        Self {
+            index: None,
+            geometry: Point::new(generator(0), generator(1)),
+        }
+    }
+
+    fn nth(&self, index: usize) -> Self::Scalar {
+        self.geometry.nth(index)
+    }
+
+    fn nth_mut(&mut self, index: usize) -> &mut Self::Scalar {
+        self.geometry.nth_mut(index)
     }
 }
 
@@ -87,47 +108,19 @@ pub(crate) fn snap_single_point<T: Snappable>(
     point: &T,
     tree: &RTree<IndexedPoint>,
 ) -> Result<SnappedPoint, Error> {
-    let point_to_snap = IndexedPoint {
-        index: None,
-        geometry: *point.geometry(),
-    };
-
-    let (nearest_node, distance) = find_nearest_point_and_calculate_distance(&point_to_snap, tree)?;
-
-    Ok(SnappedPoint::new(
-        *point.geometry(),
-        nearest_node,
-        distance,
-    ))
-}
-
-/// Structure representing a graph node in the `RTree`.
-/// The `RTree` requires a structure that implements the `Point` trait.
-/// Also we need to store the node index to be able to connect the transit nodes to the nearest walk nodes.
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub(crate) struct IndexedPoint {
-    pub(crate) index: Option<NodeIndex>,
-    pub(crate) geometry: Point,
-}
-
-impl RstarPoint for IndexedPoint {
-    type Scalar = f64;
-    const DIMENSIONS: usize = 2;
-
-    fn generate(mut generator: impl FnMut(usize) -> Self::Scalar) -> Self {
-        Self {
+    let (index, distance) = find_nearest_point_and_calculate_distance(
+        &IndexedPoint {
             index: None,
-            geometry: Point::new(generator(0), generator(1)),
-        }
-    }
+            geometry: *point.geometry(),
+        },
+        tree,
+    )?;
 
-    fn nth(&self, index: usize) -> Self::Scalar {
-        self.geometry.nth(index)
-    }
-
-    fn nth_mut(&mut self, index: usize) -> &mut Self::Scalar {
-        self.geometry.nth_mut(index)
-    }
+    Ok(SnappedPoint {
+        geometry: *point.geometry(),
+        index,
+        distance,
+    })
 }
 
 pub(crate) fn build_rtree(graph: &DiGraph<GraphNode, GraphEdge>) -> RTree<IndexedPoint> {
