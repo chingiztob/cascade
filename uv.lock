@@ -30,7 +30,9 @@ wheels = [
 name = "cascade"
 version = "0.1.0"
 source = { editable = "." }
-dependencies = [
+
+[package.optional-dependencies]
+validation = [
     { name = "polars" },
 ]
 
@@ -45,7 +47,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "polars", specifier = ">=1.9.0" }]
+requires-dist = [{ name = "polars", marker = "extra == 'validation'", specifier = ">=1.9.0" }]
 
 [package.metadata.requires-dev]
 dev = [

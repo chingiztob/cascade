@@ -3,7 +3,7 @@ Wrappers for main routing functions of
 underlying cascade-core crate
 */
 
-use ahash::HashMap;
+use ahash::{HashMap, HashMapExt};
 
 use cascade_core::prelude::*;
 use geo::Point;
@@ -86,11 +86,9 @@ pub fn calculate_od_matrix(
     let snapped_points: Vec<(String, SnappedPoint)> = nodes
         .into_iter()
         .map(|py_point| {
-            snap_point(py_point.x, py_point.y, graph)
-                .map(|snapped| (py_point.id, snapped))
-                .map_err(PyErr::from) // Convert the error to PyErr for PyO3
+            snap_point(py_point.x, py_point.y, graph).map(|snapped| (py_point.id, snapped))
         })
-        .collect::<Result<Vec<_>, PyErr>>()?;
+        .collect::<Result<_, _>>()?;
 
     // Map of node indices to original PyPoint IDs for lookup
     let id_map: HashMap<usize, &String> = snapped_points
@@ -101,16 +99,13 @@ pub fn calculate_od_matrix(
     // Collect the OD matrix with PyPoint IDs as keys
     let od_matrix: HashMap<String, HashMap<String, f64>> = snapped_points
         .par_iter()
-        .with_min_len(100) // do not split arrays smaller than 100 elements
         .map(|(id, node)| {
-            let shortest_paths =
-                cascade_core::algo::single_source_shortest_path(graph, node, dep_time)
-                    .into_iter()
-                    // For each (k: NodeIndex), find the `id` of the destination point in the id_map
-                    .filter_map(|(k, v)| {
-                        id_map.get(&k.index()).map(|&dest_id| (dest_id.clone(), v))
-                    })
-                    .collect::<HashMap<String, f64>>();
+            let mut shortest_paths = HashMap::with_capacity(snapped_points.len()); // Pre-allocate based on expected size
+            for (k, v) in cascade_core::algo::single_source_shortest_path(graph, node, dep_time) {
+                if let Some(&dest_id) = id_map.get(&k.index()) {
+                    shortest_paths.insert(dest_id.clone(), v); // Directly insert into pre-allocated map
+                }
+            }
             (id.clone(), shortest_paths)
         })
         .collect();

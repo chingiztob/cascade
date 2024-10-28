@@ -1,7 +1,7 @@
 use geo::{prelude::*, Point};
 use petgraph::graph::DiGraph;
 use petgraph::graph::NodeIndex;
-use rstar::Point as RstarPoint;
+use rstar::primitives::GeomWithData;
 use rstar::RTree;
 
 use crate::graph::{GraphEdge, GraphNode, TransitGraph, WalkEdge};
@@ -52,53 +52,24 @@ impl SnappedPoint {
 }
 
 /// Structure representing a graph node in the `RTree`.
-/// The `RTree` requires a structure that implements the `Point` trait.
-/// Also we need to store the node index to be able to connect the transit nodes to the nearest walk nodes.
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub(crate) struct IndexedPoint {
-    pub(crate) index: Option<NodeIndex>,
-    pub(crate) geometry: Point,
-}
-
-impl RstarPoint for IndexedPoint {
-    type Scalar = f64;
-    const DIMENSIONS: usize = 2;
-
-    fn generate(mut generator: impl FnMut(usize) -> Self::Scalar) -> Self {
-        Self {
-            index: None,
-            geometry: Point::new(generator(0), generator(1)),
-        }
-    }
-
-    fn nth(&self, index: usize) -> Self::Scalar {
-        self.geometry.nth(index)
-    }
-
-    fn nth_mut(&mut self, index: usize) -> &mut Self::Scalar {
-        self.geometry.nth_mut(index)
-    }
-}
+/// Required to store the node index to be able to connect the transit nodes to the nearest walk nodes.
+pub type IndexedPoint = GeomWithData<Point, Option<NodeIndex>>;
 
 /// Helper function to find the nearest point in the `RTree` and calculate the distance.
 /// Returns a tuple of the nearest node index and the calculated distance.
 fn find_nearest_point_and_calculate_distance(
-    point: &IndexedPoint,
+    point: &Point,
     tree: &RTree<IndexedPoint>,
 ) -> Result<(NodeIndex, f64), Error> {
     if let Some(nearest_point) = tree.nearest_neighbor(point) {
-        let distance = point.geometry.haversine_distance(&nearest_point.geometry) / WALK_SPEED;
-        let node = nearest_point.index.ok_or_else(|| {
-            Error::NodeNotFound(format!(
-                "Nearest node not found for point {:?}",
-                point.geometry
-            ))
+        let distance = point.haversine_distance(nearest_point.geom()) / WALK_SPEED;
+        let node = nearest_point.data.ok_or_else(|| {
+            Error::NodeNotFound(format!("Nearest node not found for point {point:?}"))
         })?;
         Ok((node, distance))
     } else {
         Err(Error::NodeNotFound(format!(
-            "Nearest node not found for point {:?}",
-            point.geometry
+            "Nearest node not found for point {point:?}"
         )))
     }
 }
@@ -108,13 +79,7 @@ pub(crate) fn snap_single_point<T: Snappable>(
     point: &T,
     tree: &RTree<IndexedPoint>,
 ) -> Result<SnappedPoint, Error> {
-    let (index, distance) = find_nearest_point_and_calculate_distance(
-        &IndexedPoint {
-            index: None,
-            geometry: *point.geometry(),
-        },
-        tree,
-    )?;
+    let (index, distance) = find_nearest_point_and_calculate_distance(point.geometry(), tree)?;
 
     Ok(SnappedPoint {
         geometry: *point.geometry(),
@@ -129,10 +94,7 @@ pub(crate) fn build_rtree(graph: &DiGraph<GraphNode, GraphEdge>) -> RTree<Indexe
         .map(|node| {
             let node_data = graph.node_weight(node).unwrap();
             let node_point: Point = *node_data.geometry();
-            IndexedPoint {
-                index: Some(node),
-                geometry: node_point,
-            }
+            IndexedPoint::new(node_point, Some(node))
         })
         .collect();
 
@@ -141,7 +103,7 @@ pub(crate) fn build_rtree(graph: &DiGraph<GraphNode, GraphEdge>) -> RTree<Indexe
 
 /// Connects Transit nodes (stops) to the nearest walk nodes.
 pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), Error> {
-    let rtree = graph.rtree_ref().unwrap().clone();
+    let rtree: RTree<IndexedPoint> = graph.rtree_ref().unwrap().clone();
 
     for node in graph.node_indices() {
         // check if there is already a transfer edge
@@ -160,13 +122,8 @@ pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), E
             .ok_or_else(|| Error::MissingValue("Node weight not found".to_string()))?;
 
         if let GraphNode::Transit(_) = weight {
-            let node_point = IndexedPoint {
-                index: Some(node),
-                geometry: *weight.geometry(),
-            };
-
             if let Ok((nearest_point_index, distance)) =
-                find_nearest_point_and_calculate_distance(&node_point, &rtree)
+                find_nearest_point_and_calculate_distance(weight.geometry(), &rtree)
             {
                 let edge = GraphEdge::Transfer(WalkEdge {
                     edge_weight: distance,
@@ -208,36 +165,18 @@ mod tests {
         let rtree = build_rtree(&graph);
 
         assert_eq!(
-            rtree.nearest_neighbor(&IndexedPoint {
-                index: None,
-                geometry: Point::new(0.4, 0.4),
-            }),
-            Some(&IndexedPoint {
-                index: Some(node1),
-                geometry: Point::new(0.0, 0.0),
-            })
+            rtree.nearest_neighbor(&Point::new(0.4, 0.4)),
+            Some(&IndexedPoint::new(Point::new(0.0, 0.0), Some(node1)))
         );
 
         assert_eq!(
-            rtree.nearest_neighbor(&IndexedPoint {
-                index: None,
-                geometry: Point::new(1.4, 1.4),
-            }),
-            Some(&IndexedPoint {
-                index: Some(node2),
-                geometry: Point::new(1.0, 1.0),
-            })
+            rtree.nearest_neighbor(&Point::new(1.4, 1.4)),
+            Some(&IndexedPoint::new(Point::new(1.0, 1.0), Some(node2)))
         );
 
         assert_eq!(
-            rtree.nearest_neighbor(&IndexedPoint {
-                index: None,
-                geometry: Point::new(2.5, 2.5),
-            }),
-            Some(&IndexedPoint {
-                index: Some(node3),
-                geometry: Point::new(2.0, 2.0),
-            })
+            rtree.nearest_neighbor(&Point::new(2.5, 2.5)),
+            Some(&IndexedPoint::new(Point::new(2.0, 2.0), Some(node3)))
         );
     }
 
