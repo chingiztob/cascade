@@ -27,7 +27,6 @@ dev-dependencies = [
     "h3pandas",
     "folium",
     "mapclassify",
-    "osmnx",
 ]
 
 [tool.ruff]
