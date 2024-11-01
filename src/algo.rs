@@ -100,7 +100,7 @@ pub fn calculate_od_matrix(
     let od_matrix: HashMap<String, HashMap<String, f64>> = snapped_points
         .par_iter()
         .map(|(id, node)| {
-            let mut shortest_paths = HashMap::with_capacity(snapped_points.len()); // Pre-allocate based on expected size
+            let mut shortest_paths = HashMap::with_capacity(snapped_points.len());
             for (k, v) in cascade_core::algo::single_source_shortest_path(graph, node, dep_time) {
                 if let Some(&dest_id) = id_map.get(&k.index()) {
                     shortest_paths.insert(dest_id.clone(), v); // Directly insert into pre-allocated map

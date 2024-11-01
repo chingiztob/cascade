@@ -62,7 +62,7 @@ fn find_nearest_point_and_calculate_distance(
     tree: &RTree<IndexedPoint>,
 ) -> Result<(NodeIndex, f64), Error> {
     if let Some(nearest_point) = tree.nearest_neighbor(point) {
-        let distance = point.haversine_distance(nearest_point.geom()) / WALK_SPEED;
+        let distance = Haversine::distance(*point, *nearest_point.geom()) / WALK_SPEED;
         let node = nearest_point.data.ok_or_else(|| {
             Error::NodeNotFound(format!("Nearest node not found for point {point:?}"))
         })?;
@@ -197,7 +197,7 @@ mod tests {
         assert_eq!(*snapped_point.index(), node1);
         assert!(
             (*snapped_point.distance()
-                - point.haversine_distance(&Point::new(0.0, 0.0)) / WALK_SPEED)
+                - Haversine::distance(point, Point::new(0.0, 0.0)) / WALK_SPEED)
                 .abs()
                 < f64::EPSILON
         );
