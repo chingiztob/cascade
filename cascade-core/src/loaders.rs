@@ -326,7 +326,6 @@ where
     N: Clone,
     E: Clone,
 {
-    // Here is the idea:
     // NodeIndex is used in petgraph graph to uniquely identify nodes
     // in classic `graph` indexes are always 0..n where n is the number of nodes
     // So when we add nodes from one graph, to another (iterating in index order)

@@ -43,7 +43,6 @@ pub struct TransitGraph {
 }
 
 impl TransitGraph {
-    /// Create a new `TransitGraph`
     pub(crate) fn new() -> Self {
         Self {
             graph: DiGraph::<GraphNode, GraphEdge>::new(),
@@ -51,13 +50,12 @@ impl TransitGraph {
         }
     }
 
-    /// Create a `TransitGraph` from an edgelist file.
+    /// Create a `TransitGraph` from an osm .pbf file.
     #[must_use]
     pub(crate) fn from_parts(
         graph: DiGraph<GraphNode, GraphEdge>,
         rtree: RTree<IndexedPoint>,
     ) -> Self {
-        // Create a graph from the edgelist data
         TransitGraph {
             graph,
             rtree: Some(rtree),
@@ -99,7 +97,7 @@ impl TransitGraph {
 
         // Construct transit only graph from dataframes
         let initial_graph = loaders::new_graph(&stops_df, &stop_times_df)?;
-        // retrieve the street graph from the thread
+
         let mut walk_graph = walk_graph_handle.join().map_err(|_| {
             Error::ThreadPanicError("Failed to join street graph thread".to_string())
         })??;
@@ -115,7 +113,7 @@ impl TransitGraph {
     }
 
     /// Add transit data from another GTFS feed on top of existing graph.
-    /// Currntly uses straightforward logic with adddition of all stops and
+    /// Currntly uses straightforward logic with addition of all stops and
     /// transit edges to initial graph.
     #[warn(unstable_features)]
     pub fn extend_with_transit(&mut self, feed_args: &FeedArgs) -> Result<(), Error> {
