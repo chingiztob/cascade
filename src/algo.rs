@@ -55,8 +55,8 @@ pub fn single_source_shortest_path_rs(
 /// # Returns
 /// weight of the shortest path in seconds.
 #[pyfunction]
-#[pyo3(name = "shortest_path")]
-pub fn shortest_path_rs(
+#[pyo3(name = "shortest_path_weight")]
+pub fn shortest_path_weight(
     graph: &PyTransitGraph,
     dep_time: u32,
     source_x: f64,
@@ -64,6 +64,27 @@ pub fn shortest_path_rs(
     target_x: f64,
     target_y: f64,
 ) -> PyResult<f64> {
+    let graph = &graph.graph;
+
+    let source = snap_point(source_x, source_y, graph)?;
+    let target = snap_point(target_x, target_y, graph)?;
+
+    let result = cascade_core::algo::shortest_path_weight(graph, &source, &target, dep_time)
+        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{e:?}")))?;
+
+    Ok(result)
+}
+
+#[pyfunction]
+#[pyo3(name = "shortest_path")]
+pub fn shortest_path(
+    graph: &PyTransitGraph,
+    dep_time: u32,
+    source_x: f64,
+    source_y: f64,
+    target_x: f64,
+    target_y: f64,
+) -> PyResult<Vec<usize>> {
     let graph = &graph.graph;
 
     let source = snap_point(source_x, source_y, graph)?;

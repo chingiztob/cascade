@@ -37,43 +37,14 @@ pub fn create_graph(
         pyo3::exceptions::PyRuntimeError::new_err(format!("Graph creation failed: {e:?}"))
     })?;
 
-    let id_mapping = create_mapping(&graph);
     println!("Graph creation time: {:?}", instant.elapsed());
 
-    Ok(PyTransitGraph { graph, id_mapping })
-}
-
-fn create_mapping(graph: &TransitGraph) -> HashMap<usize, PyGraphNode> {
-    let mut id_mapping = HashMap::with_capacity(graph.node_count());
-    for node in graph.into_inner_graph().node_indices() {
-        let node_data = graph.into_inner_graph().node_weight(node).unwrap();
-
-        match node_data {
-            GraphNode::Transit(transit_node) => {
-                let graph_node = PyGraphNode {
-                    node_type: "transit".to_string(),
-                    id: transit_node.stop_id.clone(),
-                    geometry: transit_node.geometry,
-                };
-                id_mapping.insert(node.index(), graph_node);
-            }
-            GraphNode::Walk(street_node) => {
-                let graph_node = PyGraphNode {
-                    node_type: "street".to_string(),
-                    id: format!("{}", street_node.id.0),
-                    geometry: street_node.geometry,
-                };
-                id_mapping.insert(node.index(), graph_node);
-            }
-        };
-    }
-    id_mapping
+    Ok(PyTransitGraph { graph })
 }
 
 #[pyclass]
 pub struct PyTransitGraph {
     pub graph: TransitGraph,
-    id_mapping: HashMap<usize, PyGraphNode>,
 }
 
 #[pymethods]
@@ -88,8 +59,33 @@ impl PyTransitGraph {
     }
 
     #[must_use]
+    #[allow(clippy::missing_panics_doc)] // panic impossible
     pub fn get_mapping(&self) -> HashMap<usize, PyGraphNode> {
-        self.id_mapping.clone()
+        let graph = &self.graph;
+        let mut id_mapping = HashMap::with_capacity(graph.node_count());
+        for node in graph.into_inner_graph().node_indices() {
+            let node_data = graph.into_inner_graph().node_weight(node).unwrap();
+
+            match node_data {
+                GraphNode::Transit(transit_node) => {
+                    let graph_node = PyGraphNode {
+                        node_type: "transit".to_string(),
+                        id: transit_node.stop_id.clone(),
+                        geometry: transit_node.geometry,
+                    };
+                    id_mapping.insert(node.index(), graph_node);
+                }
+                GraphNode::Walk(street_node) => {
+                    let graph_node = PyGraphNode {
+                        node_type: "street".to_string(),
+                        id: format!("{}", street_node.id.0),
+                        geometry: street_node.geometry,
+                    };
+                    id_mapping.insert(node.index(), graph_node);
+                }
+            };
+        }
+        id_mapping
     }
 
     #[warn(unstable_features)]

@@ -108,7 +108,7 @@ def single_source_shortest_path(
     """
     ...
 
-def shortest_path(
+def shortest_path_weight(
     graph: PyTransitGraph,
     dep_time: int,
     source_x: float,
@@ -116,6 +116,18 @@ def shortest_path(
     target_x: float,
     target_y: float,
 ) -> float:
+    """Finds the shortest path between two points
+    in a time-dependent graph using Dijkstra's algorithm."""
+    ...
+
+def shortest_path(
+    graph: PyTransitGraph,
+    dep_time: int,
+    source_x: float,
+    source_y: float,
+    target_x: float,
+    target_y: float,
+) -> List[int]:
     """Finds the shortest path between two points
     in a time-dependent graph using Dijkstra's algorithm."""
     ...
