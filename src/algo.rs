@@ -90,8 +90,7 @@ pub fn shortest_path(
     let source = snap_point(source_x, source_y, graph)?;
     let target = snap_point(target_x, target_y, graph)?;
 
-    let result = cascade_core::algo::shortest_path(graph, &source, &target, dep_time)
-        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{e:?}")))?;
+    let result = cascade_core::algo::shortest_path(graph, &source, &target, dep_time);
 
     Ok(result)
 }

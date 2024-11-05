@@ -116,7 +116,7 @@ def shortest_path_weight(
     target_x: float,
     target_y: float,
 ) -> float:
-    """Finds the shortest path between two points
+    """Finds the shortest path weight (seconds) between two points
     in a time-dependent graph using Dijkstra's algorithm."""
     ...
 
@@ -128,7 +128,7 @@ def shortest_path(
     target_x: float,
     target_y: float,
 ) -> List[int]:
-    """Finds the shortest path between two points
+    """Finds the shortest path as NodeIndex sequence between two points
     in a time-dependent graph using Dijkstra's algorithm."""
     ...
 

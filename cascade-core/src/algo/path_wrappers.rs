@@ -51,15 +51,9 @@ pub fn shortest_path(
     start: &SnappedPoint,
     target: &SnappedPoint,
     start_time: u32,
-) -> Result<Vec<usize>, Error> {
-    let source_index = start.index();
-    let target_index = target.index();
-
-    let result =
-        time_dependent_dijkstra_path(graph, *source_index, Some(*target_index), start_time)
-            .into_iter()
-            .map(petgraph::prelude::NodeIndex::index)
-            .collect();
-
-    Ok(result)
+) -> Vec<usize> {
+    time_dependent_dijkstra_path(graph, *start.index(), Some(*target.index()), start_time)
+        .into_iter()
+        .map(petgraph::prelude::NodeIndex::index)
+        .collect()
 }
