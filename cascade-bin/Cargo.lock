@@ -200,7 +200,7 @@ name = "cascade-bin"
 version = "0.1.0"
 dependencies = [
  "cascade_core",
- "geo 0.28.0",
+ "geo",
 ]
 
 [[package]]
@@ -208,7 +208,7 @@ name = "cascade_core"
 version = "0.1.0"
 dependencies = [
  "ahash",
- "geo 0.29.1",
+ "geo",
  "itertools 0.13.0",
  "osm4routing",
  "petgraph",
@@ -522,23 +522,6 @@ checksum = "ab90cde24b3319636588d0c35fe03b1333857621051837ed769faefb4c2162e4"
 dependencies = [
  "futures",
  "num_cpus",
-]
-
-[[package]]
-name = "geo"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f811f663912a69249fa620dcd2a005db7254529da2d8a0b23942e81f47084501"
-dependencies = [
- "earcutr",
- "float_next_after",
- "geo-types",
- "geographiclib-rs",
- "log",
- "num-traits",
- "robust",
- "rstar",
- "spade",
 ]
 
 [[package]]
