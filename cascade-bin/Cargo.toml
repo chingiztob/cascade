@@ -6,6 +6,3 @@ edition = "2021"
 [dependencies]
 cascade_core = { path = "../cascade-core" }
 geo = "0.29.1"
-
-[profile.release]
-debug = true
