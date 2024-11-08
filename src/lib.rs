@@ -1,21 +1,27 @@
 /*!
 # Cascade
 
-**Cascade** is a library, designed to provide
-the same core functionality as `NxTransit`,
-a Python library for creating and analyzing
-multimodal graphs of urban transit systems using GTFS data.
-Core logic of library implemented in pure Rust, resulting in
-significantly higher performance and lower memory usage
+Cascade is a Rust library for creating and analyzing multimodal graphs
+of urban transit systems using GTFS (General Transit Feed Specification)
+and OpenStreetMap (OSM) data. Core functionality is implemented in Rust
+allowing for high performance and low memory usage.
 
-See the original [NxTransit documentation](https://nxtransit.readthedocs.io/en/latest/) for an overview of the features being ported and enhanced in this version.
+## Features
 
-## OSM pbf files with street network can be prepared with [`osmium`](https://osmcode.org/osmium-tool/)
+- **Create transit graphs** from GTFS feeds and OSM PBF files.
+- **Integrate transit and pedestrian networks** for multimodal analysis.
+- **High performance and low memory usage** due to Rust's speed and safety.
 
-### clip data by boundary
+## Preparing OSM Data
+
+To work with OSM data, you can prepare PBF files using the [`osmium`](https://osmcode.org/osmium-tool/) tool.
+
+### Clipping Data by Boundary
+
+Extract data within a specific geographic boundary defined by a `GeoJSON` polygon:
 
 ```bash
-osmium extract --polygon=/border.geojson /soure_file.pbf -o /target_file.pbf
+osmium extract --polygon=border.geojson source_file.pbf -o target_file.pbf
 ```
 
 ### extract highways only
@@ -23,13 +29,24 @@ osmium extract --polygon=/border.geojson /soure_file.pbf -o /target_file.pbf
 ```bash
 osmium tags-filter -o highways.osm.pbf input.pbf w/highway
 ```
+### Example Usage in Python
+```python
+use cascade::create_graph;
+
+let gtfs_path = "path/to/gtfs";
+let pbf_path = "path/to/osm.pbf";
+let departure = 0;
+let duration = 86400; // Duration in seconds
+let weekday = "monday";
+
+let graph = create_graph(gtfs_path, pbf_path, departure, duration, weekday)?;
+```
 */
 
 use pyo3::prelude::*;
 
 use crate::algo::{
-    calculate_od_matrix, shortest_path, shortest_path_weight, single_source_shortest_path_rs,
-    PyPoint,
+    calculate_od_matrix, shortest_path, shortest_path_weight, single_source_shortest_path, PyPoint,
 };
 use crate::graph::{create_graph, PyTransitGraph};
 
@@ -38,7 +55,7 @@ pub mod graph;
 
 #[pymodule]
 fn _cascade_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(single_source_shortest_path_rs, m)?)?;
+    m.add_function(wrap_pyfunction!(single_source_shortest_path, m)?)?;
     m.add_function(wrap_pyfunction!(shortest_path, m)?)?;
     m.add_function(wrap_pyfunction!(shortest_path_weight, m)?)?;
     m.add_function(wrap_pyfunction!(create_graph, m)?)?;

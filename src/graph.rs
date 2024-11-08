@@ -1,6 +1,31 @@
 /*!
-Wrappers for main cascade-core types
-and graph functions
+Module for creating and manipulating transit graphs using GTFS and OSM data, exposed to Python via `PyO3` bindings.
+Main logic of the module implemented in [`cascade_core`] crate, with Python bindings provided by this module.
+
+This module provides functionality to:
+
+- **Create a transit graph** from GTFS (General Transit Feed Specification) data and OpenStreetMap (OSM) PBF files using the `create_graph` function.
+- **Extend an existing transit graph** with additional GTFS data using the `extend_with_transit` method of `PyTransitGraph`.
+- **Access graph nodes and their properties** through the `PyTransitGraph` and `PyGraphNode` classes.
+
+### Key Components
+
+- [`create_graph()`]: A function to initialize a `PyTransitGraph` by providing paths to GTFS and PBF files along with departure time, duration, and weekday.
+- [`PyTransitGraph`]: A class representing the transit graph, offering methods to interact with the graph such as `get_mapping` and `extend_with_transit`.
+- [`PyGraphNode`]: A class representing individual nodes in the graph, containing information like node type (transit or street), identifier, and geometry.
+
+### Example Usage in Python
+```python
+from cascade import create_graph, PyTransitGraph
+
+gtfs_path = "path/to/City_GTFS"
+pbf_path = "path/to/City.pbf"
+departure = 0
+duration = 86400
+weekday = "monday"
+
+graph = create_graph(gtfs_path, pbf_path, departure, duration, weekday)
+```
 */
 
 use ahash::{HashMap, HashMapExt};

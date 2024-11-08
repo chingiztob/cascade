@@ -1,6 +1,39 @@
 /*!
-Wrappers for main routing functions of
-underlying cascade-core crate
+This module provides algorithms for finding shortest paths in time-dependent transit graphs. It includes functions to:
+
+- Compute the shortest paths from a source node to all other nodes using Dijkstra's algorithm ([`single_source_shortest_path()`]).
+- Find the shortest path weight between a source and target node ([`shortest_path_weight()`]).
+- Retrieve the actual shortest path between a source and target node as a sequence of node indices ([`shortest_path()`]).
+- Calculate an origin-destination (OD) matrix for a set of points, providing the shortest path weights between all pairs of points ([`calculate_od_matrix()`]).
+
+The module also defines a [`PyPoint`] class, a Python wrapper for passing coordinates with an ID to the Rust backend, facilitating seamless integration between Rust and Python components.
+
+# Examples
+```python
+from cascade import create_graph, single_source_shortest_path, shortest_path_weight, shortest_path, PyPoint
+
+gtfs_path = "path/to/City_GTFS"
+pbf_path = "path/to/City.pbf"
+departure = 0
+duration = 86400
+weekday = "monday"
+
+graph = create_graph(gtfs_path, pbf_path, departure, duration, weekday)
+
+(source_x, source_y) = (59.851960, 30.221418)
+(target_x, target_y) = (59.978989, 30.502047)]
+
+print(
+    cascade.shortest_path_weight(
+        graph=graph,
+        dep_time=43200,
+        source_x=source_x,
+        source_y=source_y,
+        target_x=target_x,
+        target_y=target_y,
+    )
+)
+```
 */
 
 use ahash::{HashMap, HashMapExt};
@@ -25,7 +58,7 @@ use crate::graph::PyTransitGraph;
 /// A `HashMap` with the shortest path weight in seconds to each node from the source node.
 #[pyfunction]
 #[pyo3(name = "single_source_shortest_path")]
-pub fn single_source_shortest_path_rs(
+pub fn single_source_shortest_path(
     graph: &PyTransitGraph,
     dep_time: u32,
     x: f64,
@@ -75,6 +108,7 @@ pub fn shortest_path_weight(
     Ok(result)
 }
 
+/// Retrieve the actual shortest path between a source and target node as a sequence of node indices
 #[pyfunction]
 #[pyo3(name = "shortest_path")]
 pub fn shortest_path(
@@ -95,6 +129,7 @@ pub fn shortest_path(
     Ok(result)
 }
 
+/// Calculate an origin-destination (OD) matrix for a set of points, providing the shortest path weights between all pairs of points
 #[pyfunction]
 pub fn calculate_od_matrix(
     graph: &PyTransitGraph,

@@ -1,3 +1,20 @@
+/*!
+This module defines the `TransitGraph` and related structures for creating and managing a transit graph from GTFS feeds and OSM data.
+
+# Structs
+- `FeedArgs`: Stores the arguments required to create a `TransitGraph` from a GTFS feed.
+- `TransitGraph`: Stores the graph and associated methods. The graph is backed by `petgraph::graph::DiGraph`.
+- `TransitNode`: Represents a transit stop with a `stop_id` and `geometry`.
+- `WalkNode`: Represents a walkable location with an `id` and `geometry`.
+- `TransitEdge`: Represents a transit connection between two stops.
+- `WalkEdge`: Represents a pedestrian connection.
+- `Trip`: Represents a single movement between two stops.
+
+# Enums
+- `GraphNode`: Represents the type of node in the graph (`Transit` or `Walk`).
+- `GraphEdge`: Represents the type of edge in the graph (`Transit`, `Transfer`, or `Walk`).
+*/
+
 use std::fmt::{Debug, Display};
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
