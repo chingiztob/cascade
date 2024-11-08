@@ -142,12 +142,10 @@ impl TransitGraph {
         self.rtree.as_ref()
     }
 
-    /// Add a node to underlying the graph
     pub(crate) fn add_node(&mut self, node: GraphNode) -> NodeIndex {
         self.graph.add_node(node)
     }
 
-    /// Add an edge to the graph
     pub(crate) fn add_edge(
         &mut self,
         source: NodeIndex,

@@ -1,10 +1,3 @@
-//! Time-dependent Dijkstra's algorithm for finding the shortest paths in a time-dependent graph.
-//! Algorithm is based on the classic Dijkstra's algorithm
-//! with the difference that the delay between two nodes is calculated
-//! based on the current time and the sorted schedules of the edge.
-//! Implementation is based on classic Dijkstra's algorithm implementation in the [`petgraph`] crate
-//! and Time-dependent Dijkstra's algorithm implementation in the `Nxtransit` python library.
-
 use ahash::HashMap;
 use petgraph::graph::NodeIndex;
 

@@ -53,7 +53,7 @@ impl SnappedPoint {
 
 /// Structure representing a graph node in the `RTree`.
 /// Required to store the node index to be able to connect the transit nodes to the nearest walk nodes.
-pub type IndexedPoint = GeomWithData<Point, Option<NodeIndex>>;
+pub type IndexedPoint = GeomWithData<Point, NodeIndex>;
 
 /// Helper function to find the nearest point in the `RTree` and calculate the distance.
 /// Returns a tuple of the nearest node index and the calculated distance.
@@ -63,9 +63,7 @@ fn find_nearest_point_and_calculate_distance(
 ) -> Result<(NodeIndex, f64), Error> {
     if let Some(nearest_point) = tree.nearest_neighbor(point) {
         let distance = Haversine::distance(*point, *nearest_point.geom()) / WALK_SPEED;
-        let node = nearest_point.data.ok_or_else(|| {
-            Error::NodeNotFound(format!("Nearest node not found for point {point:?}"))
-        })?;
+        let node = nearest_point.data;
         Ok((node, distance))
     } else {
         Err(Error::NodeNotFound(format!(
@@ -94,7 +92,7 @@ pub(crate) fn build_rtree(graph: &DiGraph<GraphNode, GraphEdge>) -> RTree<Indexe
         .map(|node| {
             let node_data = graph.node_weight(node).unwrap();
             let node_point: Point = *node_data.geometry();
-            IndexedPoint::new(node_point, Some(node))
+            IndexedPoint::new(node_point, node)
         })
         .collect();
 
@@ -166,17 +164,17 @@ mod tests {
 
         assert_eq!(
             rtree.nearest_neighbor(&Point::new(0.4, 0.4)),
-            Some(&IndexedPoint::new(Point::new(0.0, 0.0), Some(node1)))
+            Some(&IndexedPoint::new(Point::new(0.0, 0.0), node1))
         );
 
         assert_eq!(
             rtree.nearest_neighbor(&Point::new(1.4, 1.4)),
-            Some(&IndexedPoint::new(Point::new(1.0, 1.0), Some(node2)))
+            Some(&IndexedPoint::new(Point::new(1.0, 1.0), node2))
         );
 
         assert_eq!(
             rtree.nearest_neighbor(&Point::new(2.5, 2.5)),
-            Some(&IndexedPoint::new(Point::new(2.0, 2.0), Some(node3)))
+            Some(&IndexedPoint::new(Point::new(2.0, 2.0), node3))
         );
     }
 
