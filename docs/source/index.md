@@ -7,31 +7,48 @@ myst:
 html_theme.sidebar_secondary.remove: true
 ---
 
-# Introduction
+# Cascade
 
-**Cascade** is a library, designed to provide
-the same core functionality as `NxTransit`,
-a Python library for creating and analyzing
-multimodal graphs of urban transit systems using GTFS data.
-Core logic of library implemented in pure Rust, resulting in
-significantly higher performance and lower memory usage
+Cascade is a Rust library for creating and analyzing multimodal graphs
+of urban transit systems using GTFS (General Transit Feed Specification)
+and OpenStreetMap (OSM) data. Core functionality is implemented in Rust
+allowing for high performance and low memory usage.
 
-See the original [NxTransit documentation](https://nxtransit.readthedocs.io/en/latest/) for an overview of the features being ported and enhanced in this version.
+The package enables the detailed analysis of transit systems by incorporating time-dependent nature of public transportation. This includes:
 
-## How to get streets data
+- GTFS feed validation.
+- Shortest path calculations with time-specific departures.
+- Generating travel time matrices to evaluate travel durations between multiple network points.
+- More features are planned for future updates.
 
-OSM pbf fike with street network can be prepared with [`osmium`](https://osmcode.org/osmium-tool/)
+## Preparing OSM Data
 
-- clip data by boundary
+To work with OSM data, you can prepare PBF files using the [`osmium`](https://osmcode.org/osmium-tool/) tool.
+
+Extract data within a specific geographic boundary defined by a `GeoJSON` polygon:
 
 ```bash
-osmium extract --polygon=/border.geojson /soure_file.pbf -o /target_file.pbf
+osmium extract --polygon=border.geojson source_file.pbf -o target_file.pbf
 ```
 
-- extract highways only
+Extract highways only
 
 ```bash
 osmium tags-filter -o highways.osm.pbf input.pbf w/highway
+```
+
+### Example Usage in Python
+
+```python
+from cascade import create_graph, PyTransitGraph
+
+gtfs_path = "path/to/City_GTFS"
+pbf_path = "path/to/City.pbf"
+departure = 0
+duration = 86400
+weekday = "monday"
+
+graph = create_graph(gtfs_path, pbf_path, departure, duration, weekday)
 ```
 
 ## Installation

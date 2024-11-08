@@ -13,19 +13,6 @@ This module provides functionality to:
 - [`create_graph()`]: A function to initialize a `PyTransitGraph` by providing paths to GTFS and PBF files along with departure time, duration, and weekday.
 - [`PyTransitGraph`]: A class representing the transit graph, offering methods to interact with the graph such as `get_mapping` and `extend_with_transit`.
 - [`PyGraphNode`]: A class representing individual nodes in the graph, containing information like node type (transit or street), identifier, and geometry.
-
-### Example Usage in Python
-```python
-from cascade import create_graph, PyTransitGraph
-
-gtfs_path = "path/to/City_GTFS"
-pbf_path = "path/to/City.pbf"
-departure = 0
-duration = 86400
-weekday = "monday"
-
-graph = create_graph(gtfs_path, pbf_path, departure, duration, weekday)
-```
 */
 
 use ahash::{HashMap, HashMapExt};

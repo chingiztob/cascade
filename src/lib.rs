@@ -31,15 +31,15 @@ osmium tags-filter -o highways.osm.pbf input.pbf w/highway
 ```
 ### Example Usage in Python
 ```python
-use cascade::create_graph;
+from cascade import create_graph, PyTransitGraph
 
-let gtfs_path = "path/to/gtfs";
-let pbf_path = "path/to/osm.pbf";
-let departure = 0;
-let duration = 86400; // Duration in seconds
-let weekday = "monday";
+gtfs_path = "path/to/City_GTFS"
+pbf_path = "path/to/City.pbf"
+departure = 0
+duration = 86400
+weekday = "monday"
 
-let graph = create_graph(gtfs_path, pbf_path, departure, duration, weekday)?;
+graph = create_graph(gtfs_path, pbf_path, departure, duration, weekday)
 ```
 */
 
