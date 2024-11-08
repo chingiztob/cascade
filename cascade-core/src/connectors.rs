@@ -32,9 +32,7 @@ pub struct SnappedPoint {
 
 impl SnappedPoint {
     pub fn init(geometry: Point, graph: &TransitGraph) -> Result<SnappedPoint, Error> {
-        let rtree = graph
-            .rtree_ref()
-            .ok_or_else(|| Error::MissingValue("Graph spatial index is not set".to_string()))?;
+        let rtree = graph.rtree_ref();
 
         let point = snap_single_point(&geometry, rtree)?;
         Ok(point)
@@ -101,7 +99,7 @@ pub(crate) fn build_rtree(graph: &DiGraph<GraphNode, GraphEdge>) -> RTree<Indexe
 
 /// Connects Transit nodes (stops) to the nearest walk nodes.
 pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), Error> {
-    let rtree: RTree<IndexedPoint> = graph.rtree_ref().unwrap().clone();
+    let rtree: RTree<IndexedPoint> = graph.rtree_ref().clone();
 
     for node in graph.node_indices() {
         // check if there is already a transfer edge

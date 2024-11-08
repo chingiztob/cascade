@@ -56,27 +56,17 @@ pub struct TransitGraph {
     /// `RTree` for spatial indexing of nodes.
     /// Used for snapping points to the nearest node
     /// This tree only keeps the street nodes
-    rtree: Option<RTree<IndexedPoint>>,
+    rtree: RTree<IndexedPoint>,
 }
 
 impl TransitGraph {
-    pub(crate) fn new() -> Self {
-        Self {
-            graph: DiGraph::<GraphNode, GraphEdge>::new(),
-            rtree: None,
-        }
-    }
-
     /// Create a `TransitGraph` from an osm .pbf file.
     #[must_use]
     pub(crate) fn from_parts(
         graph: DiGraph<GraphNode, GraphEdge>,
         rtree: RTree<IndexedPoint>,
     ) -> Self {
-        TransitGraph {
-            graph,
-            rtree: Some(rtree),
-        }
+        TransitGraph { graph, rtree }
     }
 
     /// Create a `TransitGraph` from the GTFS feed and walk graph
@@ -155,12 +145,8 @@ impl TransitGraph {
         &self.graph
     }
 
-    pub(crate) fn rtree_ref(&self) -> Option<&RTree<IndexedPoint>> {
-        self.rtree.as_ref()
-    }
-
-    pub(crate) fn add_node(&mut self, node: GraphNode) -> NodeIndex {
-        self.graph.add_node(node)
+    pub(crate) fn rtree_ref(&self) -> &RTree<IndexedPoint> {
+        &self.rtree
     }
 
     pub(crate) fn add_edge(
@@ -170,14 +156,6 @@ impl TransitGraph {
         edge: GraphEdge,
     ) -> EdgeIndex {
         self.graph.add_edge(source, target, edge)
-    }
-
-    pub(crate) fn sort_trips(&mut self) {
-        for edge in self.edge_weights_mut() {
-            if let GraphEdge::Transit(transit_edge) = edge {
-                transit_edge.edge_trips.sort();
-            }
-        }
     }
 }
 
@@ -228,15 +206,6 @@ impl GraphNode {
         match self {
             Self::Transit(transit_node) => &transit_node.geometry,
             Self::Walk(walk_node) => &walk_node.geometry,
-        }
-    }
-}
-
-impl Display for GraphNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Transit(transit_node) => write!(f, "Transit, attributes: {transit_node:?}"),
-            Self::Walk(walk_node) => write!(f, "Walk, attributes: {walk_node:?}"),
         }
     }
 }
@@ -377,43 +346,6 @@ impl Display for Trip {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_add_edge() {
-        let mut graph = TransitGraph::new();
-        let source = graph.add_node(GraphNode::Transit(TransitNode {
-            stop_id: "stop1".to_string(),
-            geometry: Point::new(0.0, 0.0),
-        }));
-        let target = graph.add_node(GraphNode::Transit(TransitNode {
-            stop_id: "stop2".to_string(),
-            geometry: Point::new(1.0, 1.0),
-        }));
-        let edge = graph.add_edge(
-            source,
-            target,
-            GraphEdge::Transit(TransitEdge {
-                edge_trips: vec![Trip::new(0, 10, "route1".to_string(), false)],
-            }),
-        );
-
-        assert_eq!(graph.edge_count(), 1);
-        assert_eq!(
-            graph.edge_weight(edge),
-            Some(&GraphEdge::Transit(TransitEdge {
-                edge_trips: vec![Trip::new(0, 10, "route1".to_string(), false)],
-            }))
-        );
-    }
-
-    #[test]
-    fn test_into_inner_graph() {
-        let graph = TransitGraph::new();
-        let inner_graph = graph.into_inner_graph();
-
-        assert_eq!(inner_graph.node_count(), 0);
-        assert_eq!(inner_graph.edge_count(), 0);
-    }
 
     #[test]
     #[allow(clippy::float_cmp)]

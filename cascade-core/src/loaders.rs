@@ -3,14 +3,14 @@ use std::path::{Path, PathBuf};
 use ahash::{HashMap, HashMapExt};
 use geo::Point;
 use itertools::Itertools;
-use petgraph::graph::Graph;
+use petgraph::graph::{DiGraph, Graph};
 use petgraph::prelude::NodeIndex;
 use petgraph::visit::EdgeRef;
 use polars::chunked_array::ops::SortMultipleOptions;
 use polars::io::csv::read::CsvReadOptions;
 use polars::prelude::*;
 
-use crate::graph::{GraphEdge, GraphNode, TransitEdge, TransitGraph, TransitNode, Trip};
+use crate::graph::{GraphEdge, GraphNode, TransitEdge, TransitNode, Trip};
 use crate::Error;
 
 fn read_csv(file_path: PathBuf) -> Result<DataFrame, Error> {
@@ -128,13 +128,18 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
 pub(crate) fn new_graph(
     stops_df: &DataFrame,
     stop_times_df: &DataFrame,
-) -> Result<TransitGraph, Error> {
-    let mut transit_graph = TransitGraph::new();
+) -> Result<DiGraph<GraphNode, GraphEdge>, Error> {
+    let mut transit_graph = DiGraph::<GraphNode, GraphEdge>::new();
     let mut node_id_map: HashMap<String, NodeIndex> = HashMap::new();
 
     add_nodes_to_graph(stops_df, &mut transit_graph, &mut node_id_map)?;
     add_edges_to_graph(stop_times_df, &mut transit_graph, &node_id_map)?;
-    transit_graph.sort_trips();
+
+    for edge in transit_graph.edge_weights_mut() {
+        if let GraphEdge::Transit(transit_edge) = edge {
+            transit_edge.edge_trips.sort();
+        }
+    }
 
     Ok(transit_graph)
 }
@@ -152,7 +157,7 @@ pub(crate) fn new_graph(
 /// * `node_id_map` - A mutable reference to a `HashMap` to store node indices
 fn add_nodes_to_graph(
     stops_df: &DataFrame,
-    transit_graph: &mut TransitGraph,
+    transit_graph: &mut DiGraph<GraphNode, GraphEdge>,
     node_id_map: &mut HashMap<String, NodeIndex>,
 ) -> Result<(), Error> {
     let stop_ids = stops_df.column("stop_id")?.str()?.iter();
@@ -203,7 +208,7 @@ fn select_columns(sorted_group: &DataFrame) -> Vec<&str> {
 
 fn add_edges_to_graph(
     stop_times_df: &DataFrame,
-    transit_graph: &mut TransitGraph,
+    transit_graph: &mut DiGraph<GraphNode, GraphEdge>,
     node_id_map: &HashMap<String, NodeIndex>,
 ) -> Result<(), Error> {
     let grouped_df = stop_times_df.group_by(["trip_id"])?;
@@ -281,7 +286,7 @@ fn add_edges_to_graph(
 }
 
 fn add_edge_to_graph(
-    transit_graph: &mut TransitGraph,
+    transit_graph: &mut DiGraph<GraphNode, GraphEdge>,
     node_id_map: &HashMap<String, NodeIndex>,
     current_stop: &str,
     next_stop: &str,
@@ -357,7 +362,7 @@ mod tests {
         }
         .unwrap();
 
-        let mut graph = TransitGraph::new();
+        let mut graph = DiGraph::<GraphNode, GraphEdge>::new();
         let mut node_id_map = HashMap::new();
         let result = add_nodes_to_graph(&df, &mut graph, &mut node_id_map);
 
