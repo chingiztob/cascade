@@ -135,6 +135,7 @@ pub(crate) fn new_graph(
     add_nodes_to_graph(stops_df, &mut transit_graph, &mut node_id_map)?;
     add_edges_to_graph(stop_times_df, &mut transit_graph, &node_id_map)?;
 
+    // sort trips by departure time
     for edge in transit_graph.edge_weights_mut() {
         if let GraphEdge::Transit(transit_edge) = edge {
             transit_edge.edge_trips.sort();

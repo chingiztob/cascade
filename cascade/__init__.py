@@ -19,7 +19,7 @@ from cascade._cascade_core import (
     create_graph,
     shortest_path,
     shortest_path_weight,
-    single_source_shortest_path,
+    single_source_shortest_path_weight,
 )
 from cascade.validators import validate_feed
 
@@ -27,7 +27,7 @@ __all__ = [
     "PyTransitGraph",
     "PyPoint",
     "create_graph",
-    "single_source_shortest_path",
+    "single_source_shortest_path_weight",
     "shortest_path_weight",
     "shortest_path",
     "calculate_od_matrix",

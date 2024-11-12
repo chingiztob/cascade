@@ -230,7 +230,7 @@ pub struct WalkEdge {
 /// `Transit` for transit connections, `Transfer` for pedestrian connections, and `Walk` for walkable connections
 /// `Transit` contains a `TransitEdge` object
 /// `Transfer` and `Walk` both contain a `WalkEdge` object
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum GraphEdge {
     Transit(TransitEdge),
     Transfer(WalkEdge),
@@ -238,22 +238,6 @@ pub enum GraphEdge {
 }
 
 impl GraphEdge {
-    fn fmt_common(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Transit(transit_edge) => {
-                write!(f, "TransitEdge: {:?} ", transit_edge.edge_trips)
-            }
-            Self::Transfer(transfer_edge) => write!(
-                f,
-                "TransferEdge {{ weight: {:?} }}",
-                transfer_edge.edge_weight
-            ),
-            Self::Walk(walk_edge) => {
-                write!(f, "WalkEdge {{ weight: {:?} }}", walk_edge.edge_weight)
-            }
-        }
-    }
-
     pub(crate) fn calculate_delay(&self, current_time: u32) -> f64 {
         match self {
             Self::Transit(transit_edge) => {
@@ -268,18 +252,6 @@ impl GraphEdge {
             }
             Self::Transfer(walk_edge) | Self::Walk(walk_edge) => walk_edge.edge_weight,
         }
-    }
-}
-
-impl Debug for GraphEdge {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.fmt_common(f)
-    }
-}
-
-impl Display for GraphEdge {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.fmt_common(f)
     }
 }
 

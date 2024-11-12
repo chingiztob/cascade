@@ -66,7 +66,7 @@ def create_graph(
     """
     ...
 
-def single_source_shortest_path(
+def single_source_shortest_path_weight(
     graph: PyTransitGraph, dep_time: int, x: float, y: float
 ) -> Dict[int, float]:
     """

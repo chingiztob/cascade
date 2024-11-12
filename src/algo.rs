@@ -57,8 +57,8 @@ use crate::graph::PyTransitGraph;
 /// # Returns
 /// A `HashMap` with the shortest path weight in seconds to each node from the source node.
 #[pyfunction]
-#[pyo3(name = "single_source_shortest_path")]
-pub fn single_source_shortest_path(
+#[pyo3(name = "single_source_shortest_path_weight")]
+pub fn single_source_shortest_path_weight(
     graph: &PyTransitGraph,
     dep_time: u32,
     x: f64,
