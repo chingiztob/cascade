@@ -10,7 +10,7 @@ polars = { version = "0.43.1", default-features = false, features = [
 ] }
 petgraph = "0.6.5"
 rustworkx-core = "0.15.1"
-geo = "0.29.1"
+geo = "0.29.2"
 rstar = "0.12.2"
 thiserror = "2.0.0"
 osm4routing = "0.7.0"
