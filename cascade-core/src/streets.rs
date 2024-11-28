@@ -44,10 +44,10 @@ pub(crate) fn create_graph(filename: impl AsRef<Path>) -> Result<TransitGraph, E
     for edge in edges {
         let source_index = *node_indices
             .get(&edge.source)
-            .ok_or_else(|| Error::MissingKey(edge.source))?;
+            .ok_or(Error::MissingKey(edge.source))?;
         let target_index = *node_indices
             .get(&edge.target)
-            .ok_or_else(|| Error::MissingKey(edge.target))?;
+            .ok_or(Error::MissingKey(edge.target))?;
 
         let edge_type = GraphEdge::Walk(WalkEdge {
             edge_weight: edge.length(),

@@ -92,7 +92,7 @@ pub(crate) fn time_dependent_dijkstra_path(
     start: NodeIndex,
     target: Option<NodeIndex>,
     start_time: u32,
-) -> Vec<NodeIndex> {
+) -> HashMap<NodeIndex, Vec<NodeIndex>> {
     let mut visited = HashSet::new();
     let mut scores: HashMap<NodeIndex, f64> =
         HashMap::with_capacity(graph.into_inner_graph().node_count());
@@ -146,7 +146,17 @@ pub(crate) fn time_dependent_dijkstra_path(
         visited.insert(node);
     }
 
-    reconstruct_path(&predecessors, start, target.unwrap())
+    let paths: HashMap<NodeIndex, Vec<NodeIndex>> = scores
+        .keys()
+        .map(|&target| {
+            let path = reconstruct_path(&predecessors, start, target);
+            (target, path)
+        })
+        .collect();
+
+    paths
+
+    //reconstruct_path(&predecessors, start, target.unwrap())
 }
 
 fn reconstruct_path(

@@ -7,7 +7,7 @@ use crate::prelude::SnappedPoint;
 use crate::Error;
 
 #[must_use]
-pub fn single_source_shortest_path(
+pub fn single_source_shortest_path_weight(
     graph: &TransitGraph,
     start: &SnappedPoint,
     start_time: u32,
@@ -44,9 +44,14 @@ pub fn shortest_path(
     start: &SnappedPoint,
     target: &SnappedPoint,
     start_time: u32,
-) -> Vec<usize> {
-    time_dependent_dijkstra_path(graph, *start.index(), Some(*target.index()), start_time)
-        .into_iter()
-        .map(petgraph::prelude::NodeIndex::index)
-        .collect()
+) -> Result<Vec<usize>, Error> {
+    let result =
+        time_dependent_dijkstra_path(graph, *start.index(), Some(*target.index()), start_time)
+            .get(target.index())
+            .ok_or_else(|| Error::MissingValue("Path not found".to_string()))?
+            .iter()
+            .map(|&index| index.index())
+            .collect();
+
+    Ok(result)
 }

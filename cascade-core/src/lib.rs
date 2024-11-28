@@ -63,6 +63,7 @@ pub mod graph;
 pub mod loaders;
 pub mod prelude;
 pub mod streets;
+pub mod itinerary;
 
 const WALK_SPEED: f64 = 1.39;
 

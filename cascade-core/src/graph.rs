@@ -264,10 +264,10 @@ impl GraphEdge {
 /// `Trip` is used for pathfinding in the graph
 #[derive(Debug, Clone, Eq)]
 pub(crate) struct Trip {
-    departure_time: u32,
-    arrival_time: u32,
-    route_id: String,
-    wheelchair_accessible: bool,
+    pub departure_time: u32,
+    pub arrival_time: u32,
+    pub route_id: String,
+    pub wheelchair_accessible: bool,
 }
 
 impl Trip {

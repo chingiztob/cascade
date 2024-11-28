@@ -67,7 +67,7 @@ pub fn single_source_shortest_path_weight(
     let graph = &graph.graph;
     let source = snap_point(x, y, graph)?;
 
-    let hmap = cascade_core::algo::single_source_shortest_path(graph, &source, dep_time)
+    let hmap = cascade_core::algo::single_source_shortest_path_weight(graph, &source, dep_time)
         .into_iter()
         .map(|(k, v)| (k.index(), v))
         .collect();
@@ -124,7 +124,8 @@ pub fn shortest_path(
     let source = snap_point(source_x, source_y, graph)?;
     let target = snap_point(target_x, target_y, graph)?;
 
-    let result = cascade_core::algo::shortest_path(graph, &source, &target, dep_time);
+    let result = cascade_core::algo::shortest_path(graph, &source, &target, dep_time)
+        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{e:?}")))?;
 
     Ok(result)
 }
@@ -156,7 +157,9 @@ pub fn calculate_od_matrix(
         .par_iter()
         .map(|(id, node)| {
             let mut shortest_paths = HashMap::with_capacity(snapped_points.len());
-            for (k, v) in cascade_core::algo::single_source_shortest_path(graph, node, dep_time) {
+            for (k, v) in
+                cascade_core::algo::single_source_shortest_path_weight(graph, node, dep_time)
+            {
                 if let Some(&dest_id) = id_map.get(&k.index()) {
                     shortest_paths.insert(dest_id.clone(), v); // Directly insert into pre-allocated map
                 }
