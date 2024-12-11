@@ -28,5 +28,5 @@ impl GraphEdge {
 #[allow(unused)]
 enum ItineraryData {
     Transit(f64, Trip),
-    Pedestrian(f64)
+    Pedestrian(f64),
 }

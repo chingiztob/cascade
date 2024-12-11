@@ -46,7 +46,8 @@ graph = create_graph(gtfs_path, pbf_path, departure, duration, weekday)
 use pyo3::prelude::*;
 
 use crate::algo::{
-    calculate_od_matrix, shortest_path, shortest_path_weight, single_source_shortest_path_weight, PyPoint,
+    calculate_od_matrix, shortest_path, shortest_path_weight, single_source_shortest_path_weight,
+    PyPoint,
 };
 use crate::graph::{create_graph, PyTransitGraph};
 

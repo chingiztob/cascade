@@ -60,10 +60,10 @@ use thiserror::Error;
 pub mod algo;
 pub mod connectors;
 pub mod graph;
+pub mod itinerary;
 pub mod loaders;
 pub mod prelude;
 pub mod streets;
-pub mod itinerary;
 
 const WALK_SPEED: f64 = 1.39;
 

@@ -20,9 +20,6 @@ geo = "0.29"
 rayon = "1.10"
 cascade_core = { path = "cascade-core" }
 
-[profile.release]
-codegen-units = 1
-
 [profile.test]
 opt-level = 1
 debug = false
