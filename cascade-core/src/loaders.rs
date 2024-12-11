@@ -26,7 +26,7 @@ fn read_csv(file_path: PathBuf) -> Result<DataFrame, Error> {
     Ok(df)
 }
 
-fn hhmmss_to_sec(str_val: &Series) -> Series {
+fn hhmmss_to_sec(str_val: &Column) -> Series {
     str_val
         .str()
         .unwrap_or_else(|_| {
@@ -53,8 +53,13 @@ fn filter_by_time(df: &mut DataFrame, departure: u32, duration: u32) -> Result<D
     df.apply("arrival_time", hhmmss_to_sec)?;
     df.apply("departure_time", hhmmss_to_sec)?;
 
-    let mask = df.column("departure_time")?.gt(departure)?
-        & df.column("departure_time")?.lt(departure + duration)?;
+    let mask = df
+        .column("departure_time")?
+        .as_materialized_series()
+        .gt(departure)?
+        & df.column("departure_time")?
+            .as_materialized_series()
+            .lt(departure + duration)?;
 
     Ok(df.filter(&mask)?)
 }
@@ -99,7 +104,12 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
 
     // Filter calendar for active services on specific days (e.g., day_of_week == 1)
     let service_ids = calendar_df
-        .filter(&calendar_df.column(weekday)?.equal(1)?)?
+        .filter(
+            &calendar_df
+                .column(weekday)?
+                .as_materialized_series()
+                .equal(1)?,
+        )?
         .select(["service_id"])?;
 
     // Join trips with active services to filter by service_id

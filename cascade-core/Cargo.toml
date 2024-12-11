@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-polars = { version = "0.43.1", default-features = false, features = [
+polars = { version = "0.45.1", default-features = false, features = [
     "cross_join",
     "csv",
 ] }
