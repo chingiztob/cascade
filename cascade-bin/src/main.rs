@@ -1,4 +1,5 @@
 use cascade_core::prelude::*;
+use cascade_core::algo::dijkstra_itinerary::detailed_itinerary;
 
 use geo::Point;
 use std::path::PathBuf;
@@ -19,15 +20,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let instant = std::time::Instant::now();
     let transit_graph = TransitGraph::from(feed_args)?;
     println!("Graph creation time: {:?}", instant.elapsed());
-
-    let source = SnappedPoint::init(Point::new(30.320234, 59.875912), &transit_graph)?;
-    let target = SnappedPoint::init(Point::new(30.309416, 60.066852), &transit_graph)?;
-
+     
+    let source = SnappedPoint::init(Point::new(30.221418, 59.851960), &transit_graph)?;
+    let target = SnappedPoint::init(Point::new(30.5502047, 59.978989), &transit_graph)?;
+    
     let instant = std::time::Instant::now();
-    let path = single_source_shortest_path(&transit_graph, &source, 43200);
+    //let path = single_source_shortest_path_weight(&transit_graph, &source, 43200);
 
+    let path = detailed_itinerary(&transit_graph, &source, &target, 43200).unwrap();
+
+    println!("Path: {:#?}", path);
     println!("Dijkstra time: {:?}", instant.elapsed());
-    println!("Path: {:?}", path.get(target.index()));
+    //println!("Path: {:?}", path.get(target.index()));
 
     Ok(())
 }

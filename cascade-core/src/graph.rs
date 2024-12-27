@@ -263,7 +263,7 @@ impl GraphEdge {
 /// `wheelchair_accessible` is a boolean indicating if the trip is wheelchair accessible
 /// `Trip` is used for pathfinding in the graph
 #[derive(Debug, Clone, Eq)]
-pub(crate) struct Trip {
+pub struct Trip {
     pub departure_time: u32,
     pub arrival_time: u32,
     pub route_id: String,
