@@ -153,3 +153,12 @@ def validate_feed(gtfs_path: str) -> bool:
     it verifies the format of time columns in the stop_times.txt file.
     """
     ...
+
+def detailed_itinerary(
+    graph: PyTransitGraph,
+    dep_time: int,
+    source_x: float,
+    source_y: float,
+    target_x: float,
+    target_y: float,
+) -> str: ...

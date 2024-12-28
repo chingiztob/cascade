@@ -2,14 +2,14 @@ use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::BinaryHeap;
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
+use geo::{line_string, Coord};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 
-use crate::algo::min_scored::MinScored;
+use crate::algo::itinerary::segment::{Itinerary, Segment};
+use crate::algo::MinScored;
 use crate::graph::TransitGraph;
-use crate::itinerary::{Itinerary, Segment};
 use crate::prelude::SnappedPoint;
-use crate::Error;
 
 ///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
 /// # Arguments
@@ -51,12 +51,21 @@ pub(crate) fn detailed_itinerary_internal(
         }
 
         for edge in graph.edges(node) {
+            let current_node = edge.source();
             let next_node = edge.target();
+
+            let edge_geometry = line_string![
+                Coord::from(*graph.node_weight(current_node).unwrap().geometry()),
+                Coord::from(*graph.node_weight(next_node).unwrap().geometry())
+            ];
+
             if visited.contains(&next_node) {
                 continue;
             }
 
-            let segment = edge.weight().calculate_itinerary(current_time);
+            let segment = edge
+                .weight()
+                .calculate_itinerary(current_time, edge_geometry);
 
             if matches!(segment, Segment::NoService) {
                 continue;
@@ -108,15 +117,8 @@ pub fn detailed_itinerary(
     start: &SnappedPoint,
     target: &SnappedPoint,
     start_time: u32,
-) -> Result<Itinerary, Error> {
+) -> Itinerary {
     let result = detailed_itinerary_internal(graph, *start.index(), *target.index(), start_time);
 
-    // for dev only
-    {
-        let total_weight: f64 = result.travel.iter().map(|segment| segment.weight()).sum();
-        let end_time = start_time + total_weight as u32;
-        println!("Total itinerary weight: {total_weight}");
-        println!("Start time: {start_time} End time: {end_time}");
-    }
-    Ok(result)
+    result
 }

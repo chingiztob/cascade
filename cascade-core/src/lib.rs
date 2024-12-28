@@ -60,7 +60,6 @@ use thiserror::Error;
 pub mod algo;
 pub mod connectors;
 pub mod graph;
-pub mod itinerary;
 pub mod loaders;
 pub mod prelude;
 pub mod streets;

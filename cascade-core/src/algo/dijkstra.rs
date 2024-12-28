@@ -12,7 +12,7 @@ use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 
-use crate::algo::min_scored::MinScored;
+use crate::algo::MinScored;
 use crate::graph::TransitGraph;
 
 ///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.

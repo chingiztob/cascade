@@ -171,7 +171,7 @@ pub fn calculate_od_matrix(
     Ok(od_matrix)
 }
 
-fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<SnappedPoint> {
+pub(crate) fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<SnappedPoint> {
     SnappedPoint::init(Point::new(x, y), graph).map_err(|e| {
         pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to snap point: {e:?}"))
     })

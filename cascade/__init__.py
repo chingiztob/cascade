@@ -17,6 +17,7 @@ from cascade._cascade_core import (
     PyTransitGraph,
     calculate_od_matrix,
     create_graph,
+    detailed_itinerary,
     shortest_path,
     shortest_path_weight,
     single_source_shortest_path_weight,
@@ -32,4 +33,5 @@ __all__ = [
     "shortest_path",
     "calculate_od_matrix",
     "validate_feed",
+    "detailed_itinerary",
 ]

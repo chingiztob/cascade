@@ -1,8 +1,9 @@
 use cascade_core::prelude::*;
-use cascade_core::algo::dijkstra_itinerary::detailed_itinerary;
+use cascade_core::algo::detailed_itinerary;
 
 use geo::Point;
 use std::path::PathBuf;
+use wkt::ToWkt;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     //let gtfs_path = get_user_input().unwrap();
@@ -27,11 +28,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let instant = std::time::Instant::now();
     //let path = single_source_shortest_path_weight(&transit_graph, &source, 43200);
 
-    let path = detailed_itinerary(&transit_graph, &source, &target, 43200).unwrap();
+    let path = detailed_itinerary(&transit_graph, &source, &target, 43200);
 
     println!("Path: {:#?}", path);
     println!("Dijkstra time: {:?}", instant.elapsed());
     //println!("Path: {:?}", path.get(target.index()));
+    println!("Path: {:#?}", path.combined_geometry().wkt_string());
 
     Ok(())
 }

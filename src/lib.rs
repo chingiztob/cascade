@@ -49,10 +49,12 @@ use crate::algo::{
     calculate_od_matrix, shortest_path, shortest_path_weight, single_source_shortest_path_weight,
     PyPoint,
 };
+use crate::itinerary::detailed_itinerary;
 use crate::graph::{create_graph, PyTransitGraph};
 
 pub mod algo;
 pub mod graph;
+pub mod itinerary;
 
 #[pymodule]
 fn _cascade_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -61,6 +63,7 @@ fn _cascade_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(shortest_path_weight, m)?)?;
     m.add_function(wrap_pyfunction!(create_graph, m)?)?;
     m.add_function(wrap_pyfunction!(calculate_od_matrix, m)?)?;
+    m.add_function(wrap_pyfunction!(detailed_itinerary, m)?)?;
     m.add_class::<PyTransitGraph>()?;
     m.add_class::<PyPoint>()?;
     Ok(())
