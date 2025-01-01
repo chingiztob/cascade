@@ -11,21 +11,37 @@ use crate::algo::MinScored;
 use crate::graph::TransitGraph;
 use crate::prelude::SnappedPoint;
 
-///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
+/// Finds the shortest paths from a source node to a target node in a time-dependent graph 
+/// using a variation of Dijkstra's algorithm.
+/// 
 /// # Arguments
-/// * `graph` - A reference to a `TransitGraph` object.
-/// * `start` - The source node index.
+/// 
+/// * `graph` - A reference to a `TransitGraph` object, representing the transit network.
+/// * `start` - The source node index within the graph (`NodeIndex`).
+/// * `target` - The target node index within the graph (`NodeIndex`).
 /// * `start_time` - The starting time in seconds since midnight.
+/// 
 /// # Returns
-/// A `HashMap` with the shortest path weight in seconds to each node from the source node.
-/// # Implementation notes
-/// This function uses a priority queue to explore the graph with
-/// almost classic Dijkstra's algorithm. The main difference is that the
-/// delay between two nodes is calculated based on the `current time`
-/// and the sorted schedules of the edge.
+/// 
+/// An `Itinerary` object, representing the computed travel path. 
+/// 
+/// The `Itinerary` contains the sequence of segments representing transitions along edges 
+/// in the graph and associated properties such as travel times and geometric details 
+/// (e.g., `LineString` geometries for each segment). If no valid path exists between the 
+/// source and target nodes, an empty `Itinerary` is returned.
+///
+/// # Algorithm Notes
+/// 
+/// - This implementation uses a priority queue (`BinaryHeap`) to perform a cost-based search.
+/// - The time-dependent properties of edges are computed via `Segment::calculate_itinerary()`, 
+///   which adjusts travel weights based on the current traversal time.
+/// - The algorithm tracks the shortest distances in a `HashMap` (`scores`) and stores predecessors
+///   to reconstruct the final path.
+/// - Geometric information about the path, such as linestrings, is included by deriving it from 
+///   the positions of connected nodes.
 #[must_use]
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-pub(crate) fn detailed_itinerary_internal(
+fn detailed_itinerary_internal(
     graph: &TransitGraph,
     start: NodeIndex,
     target: NodeIndex,
@@ -112,6 +128,23 @@ pub(crate) fn detailed_itinerary_internal(
     Itinerary::new()
 }
 
+/// Computes an itinerary between two locations in a transit graph.
+///
+/// # Arguments
+/// 
+/// * `graph` - A reference to a `TransitGraph` object, representing the transit network.
+/// * `start` - The starting point, represented as a `SnappedPoint` (snap-matched to a graph node).
+/// * `target` - The target point, represented as a `SnappedPoint` (snap-matched to a graph node).
+/// * `start_time` - The starting time in seconds since midnight.
+/// 
+/// # Returns
+/// 
+/// An `Itinerary` object containing the shortest path from `start` to `target`.
+/// 
+/// - Each segment within the `Itinerary` encapsulates detailed travel information, 
+///   including duration, geometry (e.g., linestrings), and transit characteristics.
+/// - If no path is found, the returned itinerary will be empty.
+///
 pub fn detailed_itinerary(
     graph: &TransitGraph,
     start: &SnappedPoint,

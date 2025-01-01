@@ -1,8 +1,8 @@
 use geo::LineString;
 use geojson::{Feature, FeatureCollection, Geometry, Value};
+use serde_json::map::Map;
 
 use crate::graph::{GraphEdge, Trip};
-use serde_json::map::Map;
 
 impl GraphEdge {
     pub(crate) fn calculate_itinerary(&self, current_time: u32, geometry: LineString) -> Segment {
@@ -76,6 +76,8 @@ impl Itinerary {
         self.travel.iter().map(Segment::weight).sum()
     }
 
+    /// # Panics
+    /// if `NoService` segment is traversed or edge missing geometry
     pub fn combined_geometry(&self) -> LineString {
         let mut combined_coords = Vec::new();
 
@@ -101,9 +103,7 @@ impl Itinerary {
 
         LineString(combined_coords)
     }
-}
 
-impl Itinerary {
     pub fn to_geojson(&self) -> geojson::GeoJson {
         let mut features = vec![];
 
@@ -118,17 +118,11 @@ impl Itinerary {
                     properties.insert("type".to_string(), "Transit".into());
                     properties.insert("weight".to_string(), weight.to_string().into());
                     properties.insert("route_id".to_string(), trip.route_id.clone().into());
-                    properties.insert(
-                        "departure_time".to_string(),
-                        trip.departure_time.to_string().into(),
-                    );
-                    properties.insert(
-                        "arrival_time".to_string(),
-                        trip.arrival_time.to_string().into(),
-                    );
+                    properties.insert("departure_time".to_string(), trip.departure_time.into());
+                    properties.insert("arrival_time".to_string(), trip.arrival_time.into());
                     properties.insert(
                         "wheelchair_accessible".to_string(),
-                        trip.wheelchair_accessible.to_string().into(),
+                        trip.wheelchair_accessible.into(),
                     );
 
                     features.push(Feature {
