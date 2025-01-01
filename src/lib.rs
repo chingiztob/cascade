@@ -49,8 +49,8 @@ use crate::algo::{
     calculate_od_matrix, shortest_path, shortest_path_weight, single_source_shortest_path_weight,
     PyPoint,
 };
-use crate::itinerary::detailed_itinerary;
 use crate::graph::{create_graph, PyTransitGraph};
+use crate::itinerary::detailed_itinerary;
 
 pub mod algo;
 pub mod graph;

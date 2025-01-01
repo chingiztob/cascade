@@ -121,7 +121,7 @@ fn detailed_itinerary_internal(
             current_node = *prev_node;
         }
 
-        itinerary.travel.reverse();
+        itinerary.segments.reverse();
         return itinerary;
     }
 

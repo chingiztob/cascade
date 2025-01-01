@@ -1,6 +1,6 @@
 use geo::LineString;
 use geojson::{Feature, FeatureCollection, Geometry};
-use serde_json::map::Map;
+use serde_json::{json, map::Map};
 
 use crate::graph::{GraphEdge, Trip};
 
@@ -60,20 +60,22 @@ impl Segment<'_> {
 
 #[derive(Debug, Clone)]
 pub struct Itinerary<'a> {
-    pub travel: Vec<Segment<'a>>,
+    pub segments: Vec<Segment<'a>>,
 }
 
-impl <'a> Itinerary<'a> {
+impl<'a> Itinerary<'a> {
     pub(crate) fn new() -> Itinerary<'a> {
-        Itinerary { travel: Vec::new() }
+        Itinerary {
+            segments: Vec::new(),
+        }
     }
 
     pub(crate) fn push(&mut self, segment: Segment<'a>) {
-        self.travel.push(segment);
+        self.segments.push(segment);
     }
 
     pub fn duration(&self) -> f64 {
-        self.travel.iter().map(Segment::weight).sum()
+        self.segments.iter().map(Segment::weight).sum()
     }
 
     /// # Panics
@@ -81,7 +83,7 @@ impl <'a> Itinerary<'a> {
     pub fn combined_geometry(&self) -> LineString {
         let mut combined_coords = Vec::new();
 
-        for segment in &self.travel {
+        for segment in &self.segments {
             let geometry = match segment {
                 Segment::Pedestrian { geometry, .. } | Segment::Transit { geometry, .. } => {
                     geometry
@@ -107,7 +109,7 @@ impl <'a> Itinerary<'a> {
     pub fn to_geojson(&self) -> geojson::GeoJson {
         let mut features = vec![];
 
-        for segment in &self.travel {
+        for (i, segment) in self.segments.iter().enumerate() {
             match segment {
                 Segment::Transit {
                     trip,
@@ -115,6 +117,8 @@ impl <'a> Itinerary<'a> {
                     geometry,
                 } => {
                     let mut properties = Map::new();
+
+                    properties.insert("sequence".to_string(), i.into());
                     properties.insert("type".to_string(), "Transit".into());
                     properties.insert("weight".to_string(), weight.to_string().into());
                     properties.insert("route_id".to_string(), trip.route_id.clone().into());
@@ -135,8 +139,9 @@ impl <'a> Itinerary<'a> {
                 }
                 Segment::Pedestrian { weight, geometry } => {
                     let mut properties = Map::new();
+                    properties.insert("sequence".to_string(), i.into());
                     properties.insert("type".to_string(), "Pedestrian".into());
-                    properties.insert("weight".to_string(), weight.to_string().into());
+                    properties.insert("weight".to_string(), json!(weight));
 
                     features.push(Feature {
                         geometry: Some(Geometry::from(geometry)),

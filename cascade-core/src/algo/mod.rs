@@ -1,9 +1,9 @@
 pub mod dijkstra;
-pub mod path_wrappers;
 pub mod itinerary;
+pub mod path_wrappers;
 
-pub use path_wrappers::{shortest_path, shortest_path_weight, single_source_shortest_path_weight};
 pub use itinerary::detailed_itinerary;
+pub use path_wrappers::{shortest_path, shortest_path_weight, single_source_shortest_path_weight};
 
 use std::cmp::Ordering;
 
