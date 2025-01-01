@@ -1,5 +1,5 @@
 use geo::LineString;
-use geojson::{Feature, FeatureCollection, Geometry, Value};
+use geojson::{Feature, FeatureCollection, Geometry};
 use serde_json::map::Map;
 
 use crate::graph::{GraphEdge, Trip};
@@ -11,7 +11,7 @@ impl GraphEdge {
                 let trips = &transit_edge.edge_trips;
                 match trips.binary_search_by(|trip| trip.departure_time.cmp(&current_time)) {
                     Ok(index) | Err(index) if index < trips.len() => {
-                        let trip = trips[index].clone();
+                        let trip = &trips[index];
 
                         let weight = f64::from(trips[index].arrival_time - current_time);
 
@@ -34,9 +34,9 @@ impl GraphEdge {
 }
 
 #[derive(Debug, Clone)]
-pub enum Segment {
+pub enum Segment<'a> {
     Transit {
-        trip: Trip,
+        trip: &'a Trip,
         weight: f64,
         geometry: LineString,
     },
@@ -47,7 +47,7 @@ pub enum Segment {
     NoService,
 }
 
-impl Segment {
+impl Segment<'_> {
     pub(crate) fn weight(&self) -> f64 {
         match self {
             Segment::Pedestrian { weight, .. } | Segment::Transit { weight, .. } => *weight,
@@ -59,16 +59,16 @@ impl Segment {
 }
 
 #[derive(Debug, Clone)]
-pub struct Itinerary {
-    pub travel: Vec<Segment>,
+pub struct Itinerary<'a> {
+    pub travel: Vec<Segment<'a>>,
 }
 
-impl Itinerary {
-    pub(crate) fn new() -> Itinerary {
+impl <'a> Itinerary<'a> {
+    pub(crate) fn new() -> Itinerary<'a> {
         Itinerary { travel: Vec::new() }
     }
 
-    pub(crate) fn push(&mut self, segment: Segment) {
+    pub(crate) fn push(&mut self, segment: Segment<'a>) {
         self.travel.push(segment);
     }
 
@@ -126,7 +126,7 @@ impl Itinerary {
                     );
 
                     features.push(Feature {
-                        geometry: Some(geometry_to_geojson(geometry)),
+                        geometry: Some(Geometry::from(geometry)),
                         properties: Some(properties),
                         id: None,
                         bbox: None,
@@ -139,7 +139,7 @@ impl Itinerary {
                     properties.insert("weight".to_string(), weight.to_string().into());
 
                     features.push(Feature {
-                        geometry: Some(geometry_to_geojson(geometry)),
+                        geometry: Some(Geometry::from(geometry)),
                         properties: Some(properties),
                         id: None,
                         bbox: None,
@@ -156,13 +156,4 @@ impl Itinerary {
             foreign_members: None,
         })
     }
-}
-
-fn geometry_to_geojson(geometry: &LineString<f64>) -> Geometry {
-    let coords: Vec<Vec<f64>> = geometry
-        .coords()
-        .map(|coord| vec![coord.x, coord.y])
-        .collect();
-
-    Geometry::new(Value::LineString(coords))
 }

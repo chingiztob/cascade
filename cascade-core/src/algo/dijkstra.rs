@@ -86,7 +86,7 @@ pub(crate) fn time_dependent_dijkstra(
     scores
 }
 
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, unused)]
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 pub(crate) fn time_dependent_dijkstra_path(
     graph: &TransitGraph,
     start: NodeIndex,

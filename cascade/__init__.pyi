@@ -161,4 +161,12 @@ def detailed_itinerary(
     source_y: float,
     target_x: float,
     target_y: float,
-) -> str: ...
+) -> str:
+    """
+    Computes an detailed itinerary in `GeoJSON` format,
+    containing the shortest path from the source to the target.
+    Each segment within the itinerary encapsulates detailed travel information,
+    including duration, geometry, and transit characteristics.
+    If no path is found, the returned itinerary will be empty.
+    """
+    ...
