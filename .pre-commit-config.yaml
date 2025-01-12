@@ -14,7 +14,7 @@ repos:
         entry: cargo fmt --
         language: system
         types: [rust]
-        pass_filenames: false # This makes it a lot faster
+        pass_filenames: false
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.9.1

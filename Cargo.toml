@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = ["cascade-core"]
-exclude = ["cascade-bin"]
 
 [package]
 name = "cascade"

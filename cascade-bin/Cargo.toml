@@ -1,9 +1,0 @@
-[package]
-name = "cascade-bin"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-cascade_core = { path = "../cascade-core" }
-geo = "0.29.1"
-wkt = "0.12"
