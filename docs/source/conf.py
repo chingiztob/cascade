@@ -22,6 +22,8 @@ release = "0.1.0"
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "myst_nb",
@@ -30,10 +32,12 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = []
 nb_execution_mode = "off"
+autodoc_typehints = "description"
+autosummary_generate = True
+autosummary_imported_members = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
-

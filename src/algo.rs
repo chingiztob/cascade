@@ -46,18 +46,42 @@ use rayon::prelude::*;
 
 use crate::graph::PyTransitGraph;
 
-///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
+/// Finds the shortest path from the source point to all other nodes in a time-dependent graph using Dijkstra's algorithm.
 ///
-/// # Arguments
-/// * `graph` - A reference to a `TransitGraph` object.
-/// * `start` - The source node index.
-/// * `dep_time` - The departure time in seconds since midnight.
-/// * `x` - The x coordinate of the source point in 4326.
-/// * `y` - The y coordinate of the source point in 4326.
-/// # Returns
-/// A `HashMap` with the shortest path weight in seconds to each node from the source node.
+/// Parameters
+/// ----------
+/// - **graph**: PyTransitGraph
+///     The graph to search for the shortest path.  
+/// - **dep_time**: int
+///     The starting time.  
+/// - **x**: float 
+///     Latitude of the source point.  
+/// - **y**: float
+///     Longitude of the source point.  
+///
+/// Returns
+/// -------
+/// Dict[int, float] 
+///     Dict with shortest distances from the source to all nodes.
+/// 
+/// Notes
+/// -----
+/// This function uses a priority queue to explore the graph with an almost classic Dijkstra's algorithm.
+/// The main difference is that the delay between two nodes is calculated based on the `current time`
+/// and the sorted schedules of the edge.
+///
+/// References
+/// ----------
+/// .. [1] Gerth Stølting Brodal, Riko Jacob:
+///     Time-dependent Networks as Models to Achieve Fast Exact Time-table Queries.
+///     Electronic Notes in Theoretical Computer Science, 92:3-15, 2004.
+///     https://doi.org/10.1016/j.entcs.2003.12.019 [1]_
+/// .. [2] Bradfield:
+///     Shortest Path with Dijkstra's Algorithm
+///     Practical Algorithms and Data Structures
+///     https://bradfieldcs.com/algos/graphs/dijkstras-algorithm [2]_
+/// 
 #[pyfunction]
-#[pyo3(name = "single_source_shortest_path_weight")]
 pub fn single_source_shortest_path_weight(
     graph: &PyTransitGraph,
     dep_time: u32,
@@ -75,18 +99,29 @@ pub fn single_source_shortest_path_weight(
     Ok(hmap)
 }
 
-///  Finds the shortest paths from source node in a time-dependent graph using Dijkstra's algorithm.
+/// Finds the shortest paths from a source node in a time-dependent graph using Dijkstra's algorithm.
 ///
-/// # Arguments
-/// * `graph` - A reference to a `TransitGraph` object.
-/// * `start` - The source node index.
-/// * `dep_time` - The departure time in seconds since midnight.
-/// * `source_x` - The x coordinate of the source point in 4326.
-/// * `source_y` - The y coordinate of the source point in 4326.
-/// * `target_x` - The x coordinate of the target point in 4326.
-/// * `target_y` - The y coordinate of the target point in 4326.
-/// # Returns
-/// weight of the shortest path in seconds.
+/// Parameters
+/// ----------
+/// - **graph**: &TransitGraph
+///     A reference to a `TransitGraph` object.
+/// - **start**: usize
+///     The source node index.
+/// - **dep_time**: u32
+///     The departure time in seconds since midnight.
+/// - **source_x**: f64
+///     The x coordinate of the source point in 4326.
+/// - **source_y**: f64
+///     The y coordinate of the source point in 4326.
+/// - **target_x**: f64
+///     The x coordinate of the target point in 4326.
+/// - **target_y**: f64
+///     The y coordinate of the target point in 4326.
+///
+/// Returns
+/// -------
+/// f64
+///     Weight of the shortest path in seconds.
 #[pyfunction]
 #[pyo3(name = "shortest_path_weight")]
 pub fn shortest_path_weight(
