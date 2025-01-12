@@ -273,12 +273,12 @@ fn add_edges_to_graph(
             (((next_stop, arrive_to_next_stop), _depart_from_next_stop), _),
         ) in zipped
         {
-            //assert!(current_departure_time >= current_arrival_time);
             // Invalid datasets with negative edge weights
             // will cause invalid Dijkstra routing
             if depart_from_current_stop > arrive_to_next_stop {
                 Err(Error::NegativeWeight(format!(
-                    "Negative weight detected: {current_stop} -> {next_stop}"
+                    "Negative weight detected: {current_stop} -> {next_stop},
+                    {depart_from_current_stop} -> {arrive_to_next_stop}, route: {current_route_id}"
                 )))?;
             }
 
