@@ -266,14 +266,17 @@ fn add_edges_to_graph(
             .zip(route_ids)
             .tuple_windows();
 
+        // Edge weight will be defined by difference between arrival on source stop
+        // and departure_time on target stop
         for (
-            (((current_stop, current_arrival_time), _), current_route_id),
-            (((next_stop, _), next_arrival_time), _),
+            (((current_stop, _arrive_to_current_stop), depart_from_current_stop), current_route_id),
+            (((next_stop, arrive_to_next_stop), _depart_from_next_stop), _),
         ) in zipped
         {
+            //assert!(current_departure_time >= current_arrival_time);
             // Invalid datasets with negative edge weights
             // will cause invalid Dijkstra routing
-            if current_arrival_time > next_arrival_time {
+            if depart_from_current_stop > arrive_to_next_stop {
                 Err(Error::NegativeWeight(format!(
                     "Negative weight detected: {current_stop} -> {next_stop}"
                 )))?;
@@ -284,8 +287,8 @@ fn add_edges_to_graph(
                 node_id_map,
                 current_stop,
                 next_stop,
-                current_arrival_time,
-                next_arrival_time,
+                depart_from_current_stop,
+                arrive_to_next_stop,
                 current_route_id,
             )?;
         }
@@ -301,13 +304,13 @@ fn add_edge_to_graph(
     node_id_map: &HashMap<String, NodeIndex>,
     current_stop: &str,
     next_stop: &str,
-    current_arrival_time: u32,
-    next_arrival_time: u32,
+    depart_from_current_stop: u32,
+    arrive_to_next_stop: u32,
     current_route_id: &str,
 ) -> Result<(), Error> {
     let route = Trip::new(
-        current_arrival_time,
-        next_arrival_time,
+        depart_from_current_stop,
+        arrive_to_next_stop,
         String::from(current_route_id),
         false,
     );
@@ -380,5 +383,99 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(graph.node_count(), 3);
         assert_eq!(node_id_map.len(), 3);
+    }
+
+    #[test]
+    fn test_add_edges_to_graph() {
+        let mut df = df! {
+            "trip_id" => &["T1", "T1", "T1"],
+            "stop_id" => &["A", "B", "C"],
+            "arrival_time" => &["08:00:00", "08:10:00", "08:25:00"],
+            "departure_time" => &["08:05:00", "08:15:00", "08:25:00"],
+            "stop_sequence" => &[1, 2, 3],
+            "route_id" => &["R1", "R1", "R1"]
+        }
+        .unwrap();
+
+        let mut graph = DiGraph::<GraphNode, GraphEdge>::new();
+        let mut node_id_map = HashMap::new();
+        let stops_df = df! {
+            "stop_id" => &["A", "B", "C"],
+            "stop_lon" => &[10.0, 20.0, 30.0],
+            "stop_lat" => &[50.0, 60.0, 70.0]
+        }
+        .unwrap();
+
+        add_nodes_to_graph(&stops_df, &mut graph, &mut node_id_map).unwrap();
+
+        df.apply("arrival_time", hhmmss_to_sec).unwrap();
+        df.apply("departure_time", hhmmss_to_sec).unwrap();
+
+        let result = add_edges_to_graph(&df, &mut graph, &node_id_map);
+
+        assert!(result.is_ok());
+        assert_eq!(graph.edge_count(), 2);
+
+        let edges: Vec<_> = graph.edge_references().collect();
+        assert_eq!(edges.len(), 2);
+
+        let first_edge = edges[0];
+        let second_edge = edges[1];
+
+        assert_eq!(first_edge.source().index(), 0);
+        assert_eq!(first_edge.target().index(), 1);
+        assert_eq!(second_edge.source().index(), 1);
+        assert_eq!(second_edge.target().index(), 2);
+
+        if let GraphEdge::Transit(transit_edge1) = first_edge.weight() {
+            assert_eq!(transit_edge1.edge_trips.len(), 1);
+            assert_eq!(transit_edge1.edge_trips[0].departure_time, 29100); // 08:05:00 in seconds
+            assert_eq!(transit_edge1.edge_trips[0].arrival_time, 29400); // 08:10:00 in seconds
+            assert_eq!(transit_edge1.edge_trips[0].route_id, "R1");
+        } else {
+            panic!("Expected TransitEdge");
+        }
+
+        if let GraphEdge::Transit(transit_edge2) = second_edge.weight() {
+            assert_eq!(transit_edge2.edge_trips.len(), 1);
+            assert_eq!(transit_edge2.edge_trips[0].departure_time, 29700); // 08:15:00 in seconds
+            assert_eq!(transit_edge2.edge_trips[0].arrival_time, 30300); // 08:25:00 in seconds
+            assert_eq!(transit_edge2.edge_trips[0].route_id, "R1");
+        } else {
+            panic!("Expected TransitEdge");
+        }
+    }
+
+    #[test]
+    fn test_merge_graphs() {
+        let mut walk_graph = DiGraph::<GraphNode, GraphEdge>::new();
+        let mut transit_graph = DiGraph::<GraphNode, GraphEdge>::new();
+
+        let _ = walk_graph.add_node(GraphNode::Transit(TransitNode {
+            stop_id: "A".to_string(),
+            geometry: Point::new(10.0, 50.0),
+        }));
+
+        let node_b = transit_graph.add_node(GraphNode::Transit(TransitNode {
+            stop_id: "B".to_string(),
+            geometry: Point::new(20.0, 60.0),
+        }));
+        let node_c = transit_graph.add_node(GraphNode::Transit(TransitNode {
+            stop_id: "C".to_string(),
+            geometry: Point::new(30.0, 70.0),
+        }));
+
+        transit_graph.add_edge(
+            node_b,
+            node_c,
+            GraphEdge::Transit(TransitEdge {
+                edge_trips: vec![Trip::new(0, 10, "R1".to_string(), false)],
+            }),
+        );
+
+        merge_graphs(&mut walk_graph, &transit_graph);
+
+        assert_eq!(walk_graph.node_count(), 3);
+        assert_eq!(walk_graph.edge_count(), 1);
     }
 }

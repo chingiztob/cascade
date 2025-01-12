@@ -264,6 +264,7 @@ impl GraphEdge {
 /// `Trip` is used for pathfinding in the graph
 #[derive(Debug, Clone, Eq)]
 pub struct Trip {
+    /// time at which trip departs from the source stop
     pub departure_time: u32,
     pub arrival_time: u32,
     pub route_id: String,
