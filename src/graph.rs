@@ -164,7 +164,6 @@ impl PyTransitGraph {
     }
 }
 
-
 #[pyclass]
 #[derive(Clone, Debug)]
 pub struct PyGraphNode {

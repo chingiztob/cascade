@@ -54,16 +54,16 @@ use crate::graph::PyTransitGraph;
 ///     The graph to search for the shortest path.  
 /// - **dep_time**: int
 ///     The starting time.  
-/// - **x**: float 
+/// - **x**: float
 ///     Latitude of the source point.  
 /// - **y**: float
 ///     Longitude of the source point.  
 ///
 /// Returns
 /// -------
-/// Dict[int, float] 
+/// Dict[int, float]
 ///     Dict with shortest distances from the source to all nodes.
-/// 
+///
 /// Notes
 /// -----
 /// This function uses a priority queue to explore the graph with an almost classic Dijkstra's algorithm.
@@ -80,7 +80,7 @@ use crate::graph::PyTransitGraph;
 ///     Shortest Path with Dijkstra's Algorithm
 ///     Practical Algorithms and Data Structures
 ///     https://bradfieldcs.com/algos/graphs/dijkstras-algorithm [2]_
-/// 
+///
 #[pyfunction]
 pub fn single_source_shortest_path_weight(
     graph: &PyTransitGraph,
