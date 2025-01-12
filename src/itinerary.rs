@@ -3,7 +3,11 @@ use pyo3::prelude::*;
 use crate::algo::snap_point;
 use crate::graph::PyTransitGraph;
 
-/// Retrieve the actual shortest path between a source and target node as a sequence of node indices
+/// Computes an detailed itinerary in `GeoJSON` format,
+/// containing the shortest path from the source to the target.
+/// Each segment within the itinerary encapsulates detailed travel information,
+/// including duration, geometry, and transit characteristics.
+/// If no path is found, the returned itinerary will be empty.
 #[pyfunction]
 pub fn detailed_itinerary(
     graph: &PyTransitGraph,

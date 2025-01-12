@@ -164,6 +164,7 @@ impl PyTransitGraph {
     }
 }
 
+/// Node of transit graph. Contains information about node type, id and geometry
 #[pyclass]
 #[derive(Clone, Debug)]
 pub struct PyGraphNode {

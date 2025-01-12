@@ -50,13 +50,13 @@ use crate::graph::PyTransitGraph;
 ///
 /// Parameters
 /// ----------
-/// - **graph**: PyTransitGraph
+/// - graph: PyTransitGraph
 ///     The graph to search for the shortest path.  
-/// - **dep_time**: int
+/// - dep_time: int
 ///     The starting time.  
-/// - **x**: float
+/// - x: float
 ///     Latitude of the source point.  
-/// - **y**: float
+/// - y: float
 ///     Longitude of the source point.  
 ///
 /// Returns
@@ -103,24 +103,24 @@ pub fn single_source_shortest_path_weight(
 ///
 /// Parameters
 /// ----------
-/// - **graph**: &TransitGraph
+/// graph : PyTransitGraph
 ///     A reference to a `TransitGraph` object.
-/// - **start**: usize
+/// start : int
 ///     The source node index.
-/// - **dep_time**: u32
+/// dep_time : int
 ///     The departure time in seconds since midnight.
-/// - **source_x**: f64
+/// source_x : float
 ///     The x coordinate of the source point in 4326.
-/// - **source_y**: f64
+/// source_y : float
 ///     The y coordinate of the source point in 4326.
-/// - **target_x**: f64
+/// target_x : float
 ///     The x coordinate of the target point in 4326.
-/// - **target_y**: f64
+/// target_y : float
 ///     The y coordinate of the target point in 4326.
 ///
 /// Returns
 /// -------
-/// f64
+/// float
 ///     Weight of the shortest path in seconds.
 #[pyfunction]
 #[pyo3(name = "shortest_path_weight")]
@@ -143,7 +143,8 @@ pub fn shortest_path_weight(
     Ok(result)
 }
 
-/// Retrieve the actual shortest path between a source and target node as a sequence of node indices
+/// Finds the shortest path as NodeIndex sequence between two points
+/// in a time-dependent graph using Dijkstra's algorithm.
 #[pyfunction]
 #[pyo3(name = "shortest_path")]
 pub fn shortest_path(
@@ -212,12 +213,16 @@ pub(crate) fn snap_point(x: f64, y: f64, graph: &TransitGraph) -> PyResult<Snapp
     })
 }
 
-/// A Python wrapper to pass coordinates with an ID to Rust backend.
+/// Spatial point with ID and x, y coords.
+///    Required to correctly pass data across Rust/Python ffi boundary
 #[pyclass(get_all)]
 #[derive(Clone, Debug)] // This allow backwards conversion from python PyPoint
 pub struct PyPoint {
+    /// A float representing the x coordinate of the point in EPSG 4326.
     pub x: f64,
+    /// A float representing the y coordinate of the point in EPSG 4326.
     pub y: f64,
+    /// A unique identifier for the point.
     pub id: String,
 }
 
