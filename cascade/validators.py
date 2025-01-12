@@ -32,6 +32,7 @@ def _validate_id_rels(
         return False
     return True
 
+
 @unstable()
 def validate_feed(gtfs_path: str) -> bool:
     """

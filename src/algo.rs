@@ -51,13 +51,13 @@ use crate::graph::PyTransitGraph;
 /// Parameters
 /// ----------
 /// - graph: PyTransitGraph
-///     The graph to search for the shortest path.  
+///     The graph to search for the shortest path.
 /// - dep_time: int
-///     The starting time.  
+///     The starting time.
 /// - x: float
-///     Latitude of the source point.  
+///     Latitude of the source point.
 /// - y: float
-///     Longitude of the source point.  
+///     Longitude of the source point.
 ///
 /// Returns
 /// -------

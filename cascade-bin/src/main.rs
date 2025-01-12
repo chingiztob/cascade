@@ -21,10 +21,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let instant = std::time::Instant::now();
     let transit_graph = TransitGraph::from(feed_args)?;
     println!("Graph creation time: {:?}", instant.elapsed());
-     
+
     let source = SnappedPoint::init(Point::new(30.221418, 59.851960), &transit_graph)?;
     let target = SnappedPoint::init(Point::new(30.5502047, 59.978989), &transit_graph)?;
-    
+
     let instant = std::time::Instant::now();
     //let path = single_source_shortest_path_weight(&transit_graph, &source, 43200);
 
