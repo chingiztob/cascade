@@ -24,13 +24,6 @@ repos:
         types: [rust]
         pass_filenames: false
 
-      - id: cargo-test
-        name: cargo test
-        entry: cargo nextest run --all
-        language: system
-        types: [rust]
-        pass_filenames: false
-
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.9.1
   hooks:
