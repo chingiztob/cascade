@@ -23,6 +23,7 @@ release = "0.1.0"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx_autodoc_typehints",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -32,7 +33,6 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = []
 nb_execution_mode = "off"
-autodoc_typehints = "description"
 autosummary_generate = True
 autosummary_imported_members = True
 
@@ -41,3 +41,13 @@ autosummary_imported_members = True
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+
+html_theme_options = {
+    "github_url": "https://github.com/chingiztob/cascade",
+    "logo": {
+        "image_light": "_static/numpylogo.svg",
+        "image_dark": "_static/numpylogo_dark.svg",
+    },
+    "navigation_depth": 2,
+    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
+}
