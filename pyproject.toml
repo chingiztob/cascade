@@ -22,14 +22,20 @@ module-name = "cascade._cascade_core"
 
 [tool.uv]
 dev-dependencies = [
-    "maturin",
+    "maturin[patchelf]",
+    "pip",
+    "polars",
+    "pre-commit",
+    "osmnx",
+    "h3 == 3.7.7",
     "geopandas",
+    "matplotlib",
     "h3pandas",
     "folium",
     "mapclassify",
     "sphinx",
     "myst-nb",
-    "pydata-sphinx-theme"
+    "pydata-sphinx-theme",
 ]
 
 [tool.ruff]
