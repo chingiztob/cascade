@@ -19,7 +19,7 @@ use std::fmt::{Debug, Display};
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 
-use geo::Point;
+use geo::{LineString, Point};
 use osm4routing::NodeId;
 use petgraph::graph::DiGraph;
 use petgraph::prelude::{EdgeIndex, NodeIndex};
@@ -95,7 +95,7 @@ impl TransitGraph {
             std::thread::spawn(move || streets::create_graph(&feed_args.pbf_path));
 
         // Prepare the dataframes from the GTFS feed
-        let (stops_df, stop_times_df) = loaders::prepare_dataframes(
+        let (stops_df, stop_times_df, shapes_df) = loaders::prepare_dataframes(
             &feed_args.gtfs_path,
             feed_args.departure,
             feed_args.duration,
@@ -103,11 +103,11 @@ impl TransitGraph {
         )?;
 
         // Construct transit only graph from dataframes
-        let initial_graph = loaders::new_graph(&stops_df, &stop_times_df)?;
+        let initial_graph = loaders::new_graph(&stops_df, &stop_times_df, &shapes_df)?;
 
-        let mut walk_graph = walk_graph_handle.join().map_err(|_| {
-            Error::ThreadPanicError("Failed to join street graph thread".to_string())
-        })??;
+        let mut walk_graph = walk_graph_handle
+            .join()
+            .expect("Unrecoverable error while processing .pbf file")?;
 
         // Merge the pedestrian graph with the transit graph (without connections)
         loaders::merge_graphs(&mut walk_graph, &initial_graph);
@@ -124,14 +124,14 @@ impl TransitGraph {
     /// transit edges to initial graph.
     #[warn(unstable_features)]
     pub fn extend_with_transit(&mut self, feed_args: &FeedArgs) -> Result<(), Error> {
-        let (stops_df, stop_times_df) = loaders::prepare_dataframes(
+        let (stops_df, stop_times_df, shapes_df) = loaders::prepare_dataframes(
             &feed_args.gtfs_path,
             feed_args.departure,
             feed_args.duration,
             feed_args.weekday,
         )?;
 
-        let initial_graph = loaders::new_graph(&stops_df, &stop_times_df)?;
+        let initial_graph = loaders::new_graph(&stops_df, &stop_times_df, &shapes_df)?;
         loaders::merge_graphs(self, &initial_graph);
 
         connectors::connect_stops_to_streets(self)?;
@@ -214,9 +214,10 @@ impl GraphNode {
 /// `edge_trips` is a vector of `Trip` objects representing the trips between the stops
 /// `Trip` contains the `departure_time`, `arrival_time`, `route_id`, and `wheelchair_accessible` information
 /// Vector is sorted by `departure_time` at the source stop so it can be used to find the earliest trip
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TransitEdge {
     pub(crate) edge_trips: Vec<Trip>,
+    pub(crate) geometry: Option<LineString<f64>>,
 }
 
 /// Edge representing a pedestrian connection
@@ -329,6 +330,7 @@ mod tests {
                 Trip::new(15, 20, "route2".to_string(), true),
                 Trip::new(25, 30, "route3".to_string(), false),
             ],
+            geometry: None,
         });
 
         assert!(approx::abs_diff_eq!(edge.calculate_delay(0), 10.0));

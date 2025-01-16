@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use ahash::{HashMap, HashMapExt};
-use geo::Point;
+use geo::{LineString, Point};
 use itertools::Itertools;
 use petgraph::graph::{DiGraph, Graph};
 use petgraph::prelude::NodeIndex;
@@ -89,7 +89,7 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
     departure: u32,
     duration: u32,
     weekday: &str,
-) -> Result<(DataFrame, DataFrame), Error> {
+) -> Result<(DataFrame, DataFrame, DataFrame), Error> {
     validate_feed(&path)?;
     let gtfs_path = PathBuf::from(path.as_ref());
 
@@ -97,6 +97,7 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
     let stop_times_df = read_csv(gtfs_path.join("stop_times.txt"))?;
     let mut trips_df = read_csv(gtfs_path.join("trips.txt"))?;
     let calendar_df = read_csv(gtfs_path.join("calendar.txt"))?;
+    let shapes_df = read_csv(gtfs_path.join("shapes.txt"))?;
 
     let stops_df = stops_df
         .with_column(stops_df.column("stop_id")?.cast(&DataType::String)?)?
@@ -132,18 +133,29 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
         filter_by_time(&mut valid_stop_times, departure, departure + duration)?;
 
     println!("Filtering left {} rows", filtered_stop_times_df.height());
-    Ok((stops_df, filtered_stop_times_df))
+
+    Ok((stops_df, filtered_stop_times_df, shapes_df))
 }
 
 pub(crate) fn new_graph(
     stops_df: &DataFrame,
     stop_times_df: &DataFrame,
+    shapes_df: &DataFrame,
 ) -> Result<DiGraph<GraphNode, GraphEdge>, Error> {
     let mut transit_graph = DiGraph::<GraphNode, GraphEdge>::new();
     let mut node_id_map: HashMap<String, NodeIndex> = HashMap::new();
 
     add_nodes_to_graph(stops_df, &mut transit_graph, &mut node_id_map)?;
-    add_edges_to_graph(stop_times_df, &mut transit_graph, &node_id_map)?;
+
+    let segment_geom_map = crate::trip_geometry::split_segments_by_stops(shapes_df, stops_df)?;
+    //println!("Map is {:?}", segment_geom_map);
+
+    add_edges_to_graph(
+        stop_times_df,
+        &mut transit_graph,
+        &node_id_map,
+        &segment_geom_map,
+    )?;
 
     // sort trips by departure time
     for edge in transit_graph.edge_weights_mut() {
@@ -221,6 +233,7 @@ fn add_edges_to_graph(
     stop_times_df: &DataFrame,
     transit_graph: &mut DiGraph<GraphNode, GraphEdge>,
     node_id_map: &HashMap<String, NodeIndex>,
+    segment_geom_map: &HashMap<(String, String), LineString<f64>>,
 ) -> Result<(), Error> {
     let grouped_df = stop_times_df.group_by(["trip_id"])?;
 
@@ -282,6 +295,10 @@ fn add_edges_to_graph(
                 )))?;
             }
 
+            let segment_geometry = segment_geom_map
+                .get(&(current_stop.to_string(), next_stop.to_string()))
+                .ok_or_else(|| Error::MissingValue("segment_geometry".to_string()))?;
+
             add_edge_to_graph(
                 transit_graph,
                 node_id_map,
@@ -290,6 +307,7 @@ fn add_edges_to_graph(
                 depart_from_current_stop,
                 arrive_to_next_stop,
                 current_route_id,
+                segment_geometry,
             )?;
         }
 
@@ -299,6 +317,7 @@ fn add_edges_to_graph(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn add_edge_to_graph(
     transit_graph: &mut DiGraph<GraphNode, GraphEdge>,
     node_id_map: &HashMap<String, NodeIndex>,
@@ -307,8 +326,9 @@ fn add_edge_to_graph(
     depart_from_current_stop: u32,
     arrive_to_next_stop: u32,
     current_route_id: &str,
+    segment_geometry: &LineString<f64>,
 ) -> Result<(), Error> {
-    let route = Trip::new(
+    let trip = Trip::new(
         depart_from_current_stop,
         arrive_to_next_stop,
         String::from(current_route_id),
@@ -325,14 +345,15 @@ fn add_edge_to_graph(
     if let Some(edge) = transit_graph.find_edge(source_node, target_node) {
         let edge_data = transit_graph.edge_weight_mut(edge).unwrap();
         if let GraphEdge::Transit(transit_edge) = edge_data {
-            transit_edge.edge_trips.push(route);
+            transit_edge.edge_trips.push(trip);
         }
     } else {
         transit_graph.add_edge(
             source_node,
             target_node,
             GraphEdge::Transit(TransitEdge {
-                edge_trips: vec![route],
+                edge_trips: vec![trip],
+                geometry: Some(segment_geometry.clone()),
             }),
         );
     }
@@ -411,7 +432,13 @@ mod tests {
         df.apply("arrival_time", hhmmss_to_sec).unwrap();
         df.apply("departure_time", hhmmss_to_sec).unwrap();
 
-        let result = add_edges_to_graph(&df, &mut graph, &node_id_map);
+        let segment_geom_map = HashMap::from_iter([
+            (("A".to_string(), "B".to_string()), LineString::new(vec![])),
+            (("B".to_string(), "C".to_string()), LineString::new(vec![])),
+            (("C".to_string(), "D".to_string()), LineString::new(vec![])),
+        ]);
+
+        let result = add_edges_to_graph(&df, &mut graph, &node_id_map, &segment_geom_map);
 
         assert!(result.is_ok());
         assert_eq!(graph.edge_count(), 2);
@@ -470,6 +497,7 @@ mod tests {
             node_c,
             GraphEdge::Transit(TransitEdge {
                 edge_trips: vec![Trip::new(0, 10, "R1".to_string(), false)],
+                geometry: None,
             }),
         );
 

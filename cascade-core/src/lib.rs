@@ -58,11 +58,12 @@ use polars::prelude::*;
 use thiserror::Error;
 
 pub mod algo;
-pub mod connectors;
+mod connectors;
 pub mod graph;
-pub mod loaders;
+mod loaders;
 pub mod prelude;
-pub mod streets;
+mod streets;
+mod trip_geometry;
 
 const WALK_SPEED: f64 = 1.39;
 
@@ -91,8 +92,6 @@ pub enum Error {
     NodeNotFound(String),
     #[error("Polars error: {0}")]
     PolarsError(#[from] PolarsError),
-    #[error("Thread panicked")]
-    ThreadPanicError(String),
 }
 
 impl From<Error> for PolarsError {
