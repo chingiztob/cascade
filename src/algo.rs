@@ -143,29 +143,6 @@ pub fn shortest_path_weight(
     Ok(result)
 }
 
-/// Finds the shortest path as NodeIndex sequence between two points
-/// in a time-dependent graph using Dijkstra's algorithm.
-#[pyfunction]
-#[pyo3(name = "shortest_path")]
-pub fn shortest_path(
-    graph: &PyTransitGraph,
-    dep_time: u32,
-    source_x: f64,
-    source_y: f64,
-    target_x: f64,
-    target_y: f64,
-) -> PyResult<Vec<usize>> {
-    let graph = &graph.graph;
-
-    let source = snap_point(source_x, source_y, graph)?;
-    let target = snap_point(target_x, target_y, graph)?;
-
-    let result = cascade_core::algo::shortest_path(graph, &source, &target, dep_time)
-        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("{e:?}")))?;
-
-    Ok(result)
-}
-
 /// Calculate an origin-destination (OD) matrix for a set of points, providing the shortest path weights between all pairs of points
 #[pyfunction]
 pub fn calculate_od_matrix(

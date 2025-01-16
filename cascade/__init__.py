@@ -18,7 +18,6 @@ from cascade._cascade_core import (
     calculate_od_matrix,
     create_graph,
     detailed_itinerary,
-    shortest_path,
     shortest_path_weight,
     single_source_shortest_path_weight,
 )

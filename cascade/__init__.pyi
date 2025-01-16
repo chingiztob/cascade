@@ -120,18 +120,6 @@ def shortest_path_weight(
     in a time-dependent graph using Dijkstra's algorithm."""
     ...
 
-def shortest_path(
-    graph: PyTransitGraph,
-    dep_time: int,
-    source_x: float,
-    source_y: float,
-    target_x: float,
-    target_y: float,
-) -> List[int]:
-    """Finds the shortest path as NodeIndex sequence between two points
-    in a time-dependent graph using Dijkstra's algorithm."""
-    ...
-
 def calculate_od_matrix(
     graph: PyTransitGraph, points: List[PyPoint], dep_time: int
 ) -> Dict[int, Dict[int, float]]:

@@ -1,7 +1,7 @@
 use ahash::HashMap;
 use petgraph::graph::NodeIndex;
 
-use crate::algo::dijkstra::{time_dependent_dijkstra, time_dependent_dijkstra_path};
+use crate::algo::dijkstra::time_dependent_dijkstra;
 use crate::graph::TransitGraph;
 use crate::prelude::SnappedPoint;
 use crate::Error;
@@ -37,21 +37,4 @@ pub fn shortest_path_weight(
     )))?;
 
     Ok(*time + distance)
-}
-
-pub fn shortest_path(
-    graph: &TransitGraph,
-    start: &SnappedPoint,
-    target: &SnappedPoint,
-    start_time: u32,
-) -> Result<Vec<usize>, Error> {
-    let result =
-        time_dependent_dijkstra_path(graph, *start.index(), Some(*target.index()), start_time)
-            .get(target.index())
-            .ok_or_else(|| Error::MissingValue("Path not found".to_string()))?
-            .iter()
-            .map(|&index| index.index())
-            .collect();
-
-    Ok(result)
 }
