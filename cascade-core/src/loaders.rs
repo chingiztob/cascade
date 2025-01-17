@@ -132,6 +132,13 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
         filter_by_time(&mut valid_stop_times, departure, departure + duration)?;
 
     println!("Filtering left {} rows", filtered_stop_times_df.height());
+
+    let shapes_df = read_csv(gtfs_path.join("shapes.txt"))?;
+    let mapping = crate::shapes::process_shapes(&shapes_df, &stops_df)?;
+    println!("Shapes mapping: {:?}", mapping.keys());
+    // len of mapping
+    println!("Shapes mapping len: {:?}", mapping.len());
+
     Ok((stops_df, filtered_stop_times_df))
 }
 
