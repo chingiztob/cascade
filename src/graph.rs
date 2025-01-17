@@ -15,7 +15,7 @@ This module provides functionality to:
 - [`PyGraphNode`]: A class representing individual nodes in the graph, containing information like node type (transit or street), identifier, and geometry.
 */
 
-use ahash::{HashMap, HashMapExt};
+use hashbrown::HashMap;
 
 use cascade_core::graph::GraphNode;
 use cascade_core::prelude::*;
@@ -95,6 +95,7 @@ impl PyTransitGraph {
     pub fn get_mapping(&self) -> HashMap<usize, PyGraphNode> {
         let graph = &self.graph;
         let mut id_mapping = HashMap::with_capacity(graph.node_count());
+
         for node in graph.into_inner_graph().node_indices() {
             let node_data = graph.into_inner_graph().node_weight(node).unwrap();
 

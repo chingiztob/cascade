@@ -36,7 +36,7 @@ print(
 ```
 */
 
-use ahash::{HashMap, HashMapExt};
+use hashbrown::HashMap;
 
 use cascade_core::prelude::*;
 use geo::Point;

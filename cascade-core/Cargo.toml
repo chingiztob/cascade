@@ -16,7 +16,7 @@ geojson = "0.24.0"
 rstar = "0.12.2"
 thiserror = "2.0.0"
 osm4routing = "0.7.0"
-ahash = "0.8.11"
+hashbrown = "0.15.2"
 itertools = "0.14.0"
 serde_json = "1.0"
 

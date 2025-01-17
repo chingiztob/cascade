@@ -14,8 +14,8 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.23", features = ["extension-module"] }
-ahash = "0.8.11"
+pyo3 = { version = "0.23", features = ["extension-module", "hashbrown"] }
+hashbrown = "0.15.2"
 geo = "0.29"
 rayon = "1.10"
 cascade_core = { path = "cascade-core" }

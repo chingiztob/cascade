@@ -5,10 +5,10 @@
 //! Implementation is based on classic Dijkstra's algorithm implementation in the [`petgraph`] crate
 //! and Time-dependent Dijkstra's algorithm implementation in the `Nxtransit` python library.
 
-use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::BinaryHeap;
 
-use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
+use hashbrown::hash_map::Entry::{Occupied, Vacant};
+use hashbrown::{HashMap, HashSet};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 

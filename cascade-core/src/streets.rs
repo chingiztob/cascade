@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use ahash::{HashMap, HashMapExt};
+use hashbrown::HashMap;
 use osm4routing;
 use petgraph::graph::DiGraph;
 use rustworkx_core::connectivity::connected_components;

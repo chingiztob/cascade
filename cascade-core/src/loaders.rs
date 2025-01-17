@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use ahash::{HashMap, HashMapExt};
 use geo::Point;
+use hashbrown::HashMap;
 use itertools::Itertools;
 use petgraph::graph::{DiGraph, Graph};
 use petgraph::prelude::NodeIndex;

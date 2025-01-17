@@ -1,4 +1,4 @@
-use ahash::HashMap;
+use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;
 
 use crate::algo::dijkstra::time_dependent_dijkstra;

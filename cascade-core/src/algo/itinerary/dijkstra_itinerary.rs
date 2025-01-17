@@ -1,8 +1,8 @@
-use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::BinaryHeap;
 
-use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use geo::{line_string, Coord};
+use hashbrown::hash_map::Entry::{Occupied, Vacant};
+use hashbrown::{HashMap, HashSet};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 
