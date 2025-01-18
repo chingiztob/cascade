@@ -160,7 +160,7 @@ impl TransitGraph {
         self.graph.add_edge(source, target, edge)
     }
 
-    /// Iterate over edges from a graph based on a list of node indices.
+    /// Iterate over walk edges from a graph based on a list of node indices.
     pub(crate) fn iter_edge_weights(
         &self,
         node_set: HashSet<NodeIndex>,

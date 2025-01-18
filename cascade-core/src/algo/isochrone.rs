@@ -1,4 +1,3 @@
-//use geo::algorithm::unary_union;
 use geo::LineString;
 use geos::{Geom, Geometry as GeosGeometry, GeometryTypes};
 use hashbrown::HashSet;
@@ -42,6 +41,7 @@ pub fn isochrone(
     // Perform unary union on the multipolygon
     let start = std::time::Instant::now();
     let mut union_geom = GeosGeometry::create_multipolygon(buffers)?.unary_union()?;
+
     union_geom.normalize()?;
     println!("Elapsed 2 {:?}", start.elapsed());
 
