@@ -95,6 +95,8 @@ pub enum Error {
     ThreadPanicError(String),
     #[error("Geos error: {0}")]
     GeosError(#[from] geos::Error),
+    #[error("Geos::geo_types error: {0}")]
+    GeosGeoTypesError(#[from] geos::geo_types::Error),
     #[error("Geometry type error: {0}")]
     GeometryTypeError(String),
 }

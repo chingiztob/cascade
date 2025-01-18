@@ -3,7 +3,7 @@ pub mod isochrone;
 pub mod itinerary;
 pub mod path_wrappers;
 
-pub use isochrone::isochrone;
+pub use isochrone::{bulk_isochrones, calculate_isochrone};
 pub use itinerary::detailed_itinerary;
 pub use path_wrappers::{shortest_path_weight, single_source_shortest_path_weight};
 

@@ -277,6 +277,7 @@ version = "0.1.0"
 dependencies = [
  "cascade_core",
  "geo",
+ "geojson",
  "hashbrown 0.15.2",
  "pyo3",
  "rayon",
@@ -298,9 +299,9 @@ dependencies = [
  "rayon",
  "rstar",
  "rustworkx-core",
+ "serde",
  "serde_json",
  "thiserror 2.0.11",
- "wkt 0.12.0",
 ]
 
 [[package]]
@@ -748,15 +749,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "geo-traits"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b018fc19fa58202b03f1c809aebe654f7d70fd3887dace34c3d05c11aeb474b5"
-dependencies = [
- "geo-types",
-]
-
-[[package]]
 name = "geo-types"
 version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -803,7 +795,7 @@ dependencies = [
  "geos-sys",
  "libc",
  "num",
- "wkt 0.10.3",
+ "wkt",
 ]
 
 [[package]]
@@ -2989,19 +2981,6 @@ version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3c2252781f8927974e8ba6a67c965a759a2b88ea2b1825f6862426bbb1c8f41"
 dependencies = [
- "geo-types",
- "log",
- "num-traits",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "wkt"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1c591649bd1c9d4e28459758bbb5fb5c0edc7a67060b52422f4761c94ffe961"
-dependencies = [
- "geo-traits",
  "geo-types",
  "log",
  "num-traits",

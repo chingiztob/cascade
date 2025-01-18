@@ -49,7 +49,7 @@ use crate::algo::{
     calculate_od_matrix, shortest_path_weight, single_source_shortest_path_weight, PyPoint,
 };
 use crate::graph::{create_graph, PyTransitGraph};
-use crate::isochrone::calculate_isochrone;
+use crate::isochrone::{bulk_isochrones, calculate_isochrone};
 use crate::itinerary::detailed_itinerary;
 
 pub mod algo;
@@ -66,6 +66,7 @@ fn _cascade_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(detailed_itinerary, m)?)?;
 
     m.add_function(wrap_pyfunction!(calculate_isochrone, m)?)?;
+    m.add_function(wrap_pyfunction!(bulk_isochrones, m)?)?;
 
     m.add_function(wrap_pyfunction!(create_graph, m)?)?;
     m.add_class::<PyTransitGraph>()?;

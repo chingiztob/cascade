@@ -15,6 +15,7 @@ for an overview of the features being ported and enhanced in this version.
 from cascade._cascade_core import (
     PyPoint,
     PyTransitGraph,
+    bulk_isochrones,
     calculate_isochrone,
     calculate_od_matrix,
     create_graph,
@@ -35,4 +36,5 @@ __all__ = [
     "validate_feed",
     "detailed_itinerary",
     "calculate_isochrone",
+    "bulk_isochrones",
 ]
