@@ -107,9 +107,9 @@ impl TransitGraph {
         // Construct transit only graph from dataframes
         let initial_graph = loaders::new_graph(&stops_df, &stop_times_df)?;
 
-        let mut walk_graph = walk_graph_handle.join().map_err(|_| {
-            Error::ThreadPanicError("Failed to join street graph thread".to_string())
-        })??;
+        let mut walk_graph = walk_graph_handle
+            .join()
+            .expect("Unrecoverable error while processing OSM data")?;
 
         // Merge the pedestrian graph with the transit graph (without connections)
         loaders::merge_graphs(&mut walk_graph, &initial_graph);

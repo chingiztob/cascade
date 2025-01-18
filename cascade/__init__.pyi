@@ -158,3 +158,26 @@ def detailed_itinerary(
     If no path is found, the returned itinerary will be empty.
     """
     ...
+
+def calculate_isochrone(
+    graph: PyTransitGraph,
+    source_x: float,
+    source_y: float,
+    dep_time: int,
+    cutoff: float,
+    buffer_radius: float,
+) -> str:
+    """
+    Calculate isochrone from point
+    """
+    ...
+
+def bulk_isochrones(
+    graph: PyTransitGraph,
+    sources: List[PyPoint],
+    dep_time: int,
+    cutoff: float,
+    buffer_radius: float,
+) -> str:
+    "Calculate many isochrones in parallel"
+    ...
