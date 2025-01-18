@@ -19,10 +19,12 @@ use std::fmt::{Debug, Display};
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 
-use geo::Point;
+use geo::{Line, Point};
+use hashbrown::HashSet;
 use osm4routing::NodeId;
 use petgraph::graph::DiGraph;
 use petgraph::prelude::{EdgeIndex, NodeIndex};
+use petgraph::visit::EdgeRef;
 use rstar::RTree;
 
 use crate::connectors;
@@ -157,6 +159,20 @@ impl TransitGraph {
     ) -> EdgeIndex {
         self.graph.add_edge(source, target, edge)
     }
+
+    /// Iterate over edges from a graph based on a list of node indices.
+    pub(crate) fn iter_edge_weights(
+        &self,
+        node_set: HashSet<NodeIndex>,
+    ) -> impl Iterator<Item = &GraphEdge> {
+        self.edge_references()
+            .filter(move |edge| {
+                node_set.contains(&edge.source())
+                    && node_set.contains(&edge.target())
+                    && matches!(edge.weight(), GraphEdge::Walk(_))
+            })
+            .map(|edge| edge.weight())
+    }
 }
 
 /// Implementing `Deref` and `DerefMut` for `TransitGraph` to allow access to the internal `DiGraph`
@@ -224,6 +240,7 @@ pub struct TransitEdge {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct WalkEdge {
     pub(crate) edge_weight: f64,
+    pub(crate) geometry: Option<Line>,
 }
 
 /// Enum representing the type of edge in the graph
@@ -251,6 +268,13 @@ impl GraphEdge {
                 }
             }
             Self::Transfer(walk_edge) | Self::Walk(walk_edge) => walk_edge.edge_weight,
+        }
+    }
+
+    pub(crate) fn geometry(&self) -> Option<Line> {
+        match self {
+            Self::Walk(walk_edge) => walk_edge.geometry,
+            _ => None,
         }
     }
 }
@@ -343,7 +367,10 @@ mod tests {
 
     #[test]
     fn test_calculate_delay_walk() {
-        let edge = GraphEdge::Walk(WalkEdge { edge_weight: 2.5 });
+        let edge = GraphEdge::Walk(WalkEdge {
+            edge_weight: 2.5,
+            geometry: None,
+        });
 
         assert!(approx::abs_diff_eq!(edge.calculate_delay(0), 2.5));
         assert!(approx::abs_diff_eq!(edge.calculate_delay(10), 2.5));

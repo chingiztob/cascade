@@ -93,6 +93,10 @@ pub enum Error {
     PolarsError(#[from] PolarsError),
     #[error("Thread panicked")]
     ThreadPanicError(String),
+    #[error("Geos error: {0}")]
+    GeosError(#[from] geos::Error),
+    #[error("Geometry type error: {0}")]
+    GeometryTypeError(String),
 }
 
 impl From<Error> for PolarsError {

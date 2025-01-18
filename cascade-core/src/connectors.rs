@@ -123,6 +123,7 @@ pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), E
             {
                 let edge = GraphEdge::Transfer(WalkEdge {
                     edge_weight: distance,
+                    geometry: None,
                 });
 
                 graph.add_edge(node, nearest_point_index, edge.clone());
