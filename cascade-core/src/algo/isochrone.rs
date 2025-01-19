@@ -4,8 +4,6 @@ use geos::{Geom, Geometry as GeosGeometry, GeometryTypes};
 use hashbrown::HashSet;
 use petgraph::prelude::*;
 use rayon::prelude::*;
-
-//use geojson::{Feature, FeatureCollection, Geometry};
 use serde::{Deserialize, Serialize};
 
 use crate::{

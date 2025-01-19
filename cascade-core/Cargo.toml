@@ -12,7 +12,11 @@ polars = { version = "0.45.1", default-features = false, features = [
 petgraph = "0.6.5"
 rustworkx-core = "0.15.1"
 geo = { version = "0.29", features = ["use-serde"] }
-geos = { version = "9.1.1", features = ["geo", "json", "static"] }
+geos = { version = "9.1.1", features = [
+    "geo",
+    "json",
+    "static",
+], optional = true }
 geojson = "0.24.0"
 rstar = "0.12.2"
 rayon = "1.10"
@@ -25,3 +29,6 @@ serde = "1"
 
 [dev-dependencies]
 approx = "0.5.1"
+
+[features]
+isochrone = ["geos"]

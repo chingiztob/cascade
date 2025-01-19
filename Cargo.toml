@@ -19,7 +19,7 @@ hashbrown = "0.15.2"
 geo = "0.29"
 geojson = "0.24.0"
 rayon = "1.10"
-cascade_core = { path = "cascade-core" }
+cascade_core = { path = "cascade-core", features = ["isochrone"] }
 
 [profile.test]
 opt-level = 1

@@ -1,4 +1,5 @@
 pub mod dijkstra;
+#[cfg(feature = "isochrone")]
 pub mod isochrone;
 pub mod itinerary;
 pub mod path_wrappers;
