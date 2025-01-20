@@ -1,8 +1,9 @@
 use std::path::{Path, PathBuf};
 
-use geo::Point;
+use geo::{line_string, Coord, Point};
 use hashbrown::HashMap;
 use itertools::Itertools;
+use petgraph::data::DataMap;
 use petgraph::graph::{DiGraph, Graph};
 use petgraph::prelude::NodeIndex;
 use petgraph::visit::EdgeRef;
@@ -322,6 +323,9 @@ fn add_edge_to_graph(
         .get(next_stop)
         .ok_or_else(|| Error::NodeNotFound(String::from(next_stop)))?;
 
+    let source_geometry = transit_graph.node_weight(source_node).unwrap().geometry();
+    let target_geometry = transit_graph.node_weight(target_node).unwrap().geometry();
+
     if let Some(edge) = transit_graph.find_edge(source_node, target_node) {
         let edge_data = transit_graph.edge_weight_mut(edge).unwrap();
         if let GraphEdge::Transit(transit_edge) = edge_data {
@@ -333,6 +337,10 @@ fn add_edge_to_graph(
             target_node,
             GraphEdge::Transit(TransitEdge {
                 edge_trips: vec![route],
+                geometry: Some(line_string![
+                    Coord::from(*source_geometry),
+                    Coord::from(*target_geometry)
+                ]),
             }),
         );
     }
@@ -470,6 +478,7 @@ mod tests {
             node_c,
             GraphEdge::Transit(TransitEdge {
                 edge_trips: vec![Trip::new(0, 10, "R1".to_string(), false)],
+                geometry: None,
             }),
         );
 

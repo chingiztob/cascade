@@ -30,7 +30,7 @@ fn main_zheleznogorsk_test() {
 
     let weight = weights.get(target.index()).expect("Node should be reached");
 
-    assert_eq!(*weight as i32, 1120);
+    assert_eq!(*weight as i32, 1121);
     assert!(matches!(
         path.segments.last().unwrap(),
         cascade_core::algo::itinerary::segment::Segment::Pedestrian {

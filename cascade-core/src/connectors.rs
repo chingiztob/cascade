@@ -1,4 +1,4 @@
-use geo::{prelude::*, Point};
+use geo::{line_string, prelude::*, Coord, Point};
 use petgraph::graph::DiGraph;
 use petgraph::graph::NodeIndex;
 use rstar::primitives::GeomWithData;
@@ -121,9 +121,16 @@ pub(crate) fn connect_stops_to_streets(graph: &mut TransitGraph) -> Result<(), E
             if let Ok((nearest_point_index, distance)) =
                 find_nearest_point_and_calculate_distance(weight.geometry(), &rtree)
             {
+                let stop_geometry = weight.geometry();
+                let street_node_geometry =
+                    graph.node_weight(nearest_point_index).unwrap().geometry();
+
                 let edge = GraphEdge::Transfer(WalkEdge {
                     edge_weight: distance,
-                    geometry: None,
+                    geometry: Some(line_string![
+                        Coord::from(*stop_geometry),
+                        Coord::from(*street_node_geometry)
+                    ]),
                 });
 
                 graph.add_edge(node, nearest_point_index, edge.clone());

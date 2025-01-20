@@ -1,6 +1,5 @@
 use std::collections::BinaryHeap;
 
-use geo::{line_string, Coord};
 use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::{HashMap, HashSet};
 use petgraph::graph::NodeIndex;
@@ -68,7 +67,6 @@ fn detailed_itinerary_internal(
         }
 
         for edge in graph.edges(node) {
-            let current_node = edge.source();
             let next_node = edge.target();
 
             if visited.contains(&next_node) {
@@ -77,13 +75,7 @@ fn detailed_itinerary_internal(
 
             let edge = edge.weight();
 
-            let edge_geometry = if let Some(geometry) = edge.geometry() {
-                geometry.clone()
-            } else {
-                let source = graph.node_weight(current_node).unwrap().geometry();
-                let target = graph.node_weight(next_node).unwrap().geometry();
-                line_string![Coord::from(*source), Coord::from(*target)]
-            };
+            let edge_geometry = edge.geometry();
 
             let segment = edge.calculate_itinerary(current_time, edge_geometry, wheelchair);
 
@@ -149,10 +141,10 @@ fn detailed_itinerary_internal(
 ///   including duration, geometry (e.g., linestrings), and transit characteristics.
 /// - If no path is found, the returned itinerary will be empty.
 ///
-pub fn detailed_itinerary<'a, 'b>(
+pub fn detailed_itinerary<'a>(
     graph: &'a TransitGraph,
-    start: &'b SnappedPoint,
-    target: &'b SnappedPoint,
+    start: &SnappedPoint,
+    target: &SnappedPoint,
     start_time: u32,
     wheelchair: bool,
 ) -> Itinerary<'a> {

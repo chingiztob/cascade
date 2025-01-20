@@ -230,9 +230,10 @@ impl GraphNode {
 /// `edge_trips` is a vector of `Trip` objects representing the trips between the stops
 /// `Trip` contains the `departure_time`, `arrival_time`, `route_id`, and `wheelchair_accessible` information
 /// Vector is sorted by `departure_time` at the source stop so it can be used to find the earliest trip
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TransitEdge {
     pub(crate) edge_trips: Vec<Trip>,
+    pub(crate) geometry: Option<LineString<f64>>,
 }
 
 /// Edge representing a pedestrian connection
@@ -273,8 +274,8 @@ impl GraphEdge {
 
     pub(crate) fn geometry(&self) -> Option<&LineString> {
         match self {
-            Self::Walk(walk_edge) => walk_edge.geometry.as_ref(),
-            _ => None,
+            Self::Walk(walk_edge) | Self::Transfer(walk_edge) => walk_edge.geometry.as_ref(),
+            Self::Transit(transit_edge) => transit_edge.geometry.as_ref(),
         }
     }
 }
@@ -342,6 +343,7 @@ impl Display for Trip {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
@@ -353,6 +355,7 @@ mod tests {
                 Trip::new(15, 20, "route2".to_string(), true),
                 Trip::new(25, 30, "route3".to_string(), false),
             ],
+            geometry: None,
         });
 
         assert!(approx::abs_diff_eq!(edge.calculate_delay(0), 10.0));

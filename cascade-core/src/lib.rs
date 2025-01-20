@@ -52,6 +52,7 @@ let path = single_source_shortest_path(&transit_graph, &source, 43200);
 println!("Path: {:?}", path.get(target.index()));
 ```
 */
+#![forbid(unsafe_code)]
 
 use osm4routing::NodeId;
 use polars::prelude::*;

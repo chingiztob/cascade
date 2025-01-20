@@ -2,7 +2,7 @@ use std::path::Path;
 
 use geo::LineString;
 use hashbrown::HashMap;
-use osm4routing;
+use osm4routing::{self, FootAccessibility};
 use petgraph::graph::DiGraph;
 use rustworkx_core::connectivity::connected_components;
 
@@ -25,9 +25,21 @@ pub(crate) fn create_graph(filename: impl AsRef<Path>) -> Result<TransitGraph, E
     // This is required to avoid creating duplicate nodes for the same OSM node ID
     // Unfortunately, petgraph `graph` does not provide a method to check if a node exists
     let (nodes, edges) = osm4routing::Reader::new()
+        .merge_ways()
         .read_tag("highway")
         .read(&filename)
         .map_err(|e| Error::InvalidData(format!("Error reading PBF: {e}")))?;
+
+    // filter only pedestrian allowed ways
+    let edges = edges
+        .into_iter()
+        .filter(|edge| {
+            matches!(
+                edge.properties.foot,
+                FootAccessibility::Allowed | FootAccessibility::Unknown
+            )
+        })
+        .collect::<Vec<_>>();
 
     let mut node_indices = HashMap::new();
 

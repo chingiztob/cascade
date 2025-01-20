@@ -5,12 +5,12 @@ use serde_json::{json, map::Map};
 use crate::graph::{GraphEdge, Trip};
 
 impl GraphEdge {
-    pub(crate) fn calculate_itinerary(
-        &self,
+    pub(crate) fn calculate_itinerary<'a>(
+        &'a self,
         current_time: u32,
-        geometry: LineString,
+        geometry: Option<&'a LineString>,
         wheelchair: bool,
-    ) -> Segment {
+    ) -> Segment<'a> {
         match self {
             Self::Transit(transit_edge) => {
                 let trips = &transit_edge.edge_trips;
@@ -48,11 +48,11 @@ pub enum Segment<'a> {
     Transit {
         trip: &'a Trip,
         weight: f64,
-        geometry: LineString,
+        geometry: Option<&'a LineString>,
     },
     Pedestrian {
         weight: f64,
-        geometry: LineString,
+        geometry: Option<&'a LineString>,
     },
     NoService,
 }
@@ -88,34 +88,6 @@ impl<'a> Itinerary<'a> {
         self.segments.iter().map(Segment::weight).sum()
     }
 
-    /// # Panics
-    /// if `NoService` segment is traversed or edge missing geometry
-    pub fn combined_geometry(&self) -> LineString {
-        let mut combined_coords = Vec::new();
-
-        for segment in &self.segments {
-            let geometry = match segment {
-                Segment::Pedestrian { geometry, .. } | Segment::Transit { geometry, .. } => {
-                    geometry
-                }
-                Segment::NoService => unreachable!("Unserviced segment traversed"),
-            };
-
-            if let Some(last_point) = combined_coords.last() {
-                // Skip duplicate point at boundary
-                if last_point == geometry.0.first().unwrap() {
-                    combined_coords.extend(geometry.0.iter().skip(1));
-                } else {
-                    combined_coords.extend_from_slice(&geometry.0);
-                }
-            } else {
-                combined_coords.extend_from_slice(&geometry.0);
-            }
-        }
-
-        LineString(combined_coords)
-    }
-
     pub fn to_geojson(&self) -> geojson::GeoJson {
         let mut features = vec![];
 
@@ -140,7 +112,7 @@ impl<'a> Itinerary<'a> {
                     );
 
                     features.push(Feature {
-                        geometry: Some(Geometry::from(geometry)),
+                        geometry: geometry.map(|g| Geometry::new(g.into())),
                         properties: Some(properties),
                         id: None,
                         bbox: None,
@@ -154,7 +126,7 @@ impl<'a> Itinerary<'a> {
                     properties.insert("weight".to_string(), json!(weight));
 
                     features.push(Feature {
-                        geometry: Some(Geometry::from(geometry)),
+                        geometry: geometry.map(|g| Geometry::new(g.into())),
                         properties: Some(properties),
                         id: None,
                         bbox: None,
