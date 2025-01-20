@@ -40,13 +40,15 @@ pub fn detailed_itinerary(
     source_y: f64,
     target_x: f64,
     target_y: f64,
+    wheelchair: bool,
 ) -> PyResult<String> {
     let graph = &graph.graph;
 
     let source = snap_point(source_x, source_y, graph)?;
     let target = snap_point(target_x, target_y, graph)?;
 
-    let itinerary = cascade_core::algo::detailed_itinerary(graph, &source, &target, dep_time);
+    let itinerary =
+        cascade_core::algo::detailed_itinerary(graph, &source, &target, dep_time, wheelchair);
 
     Ok(itinerary.to_geojson().to_string())
 }

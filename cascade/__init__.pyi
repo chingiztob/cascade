@@ -149,6 +149,7 @@ def detailed_itinerary(
     source_y: float,
     target_x: float,
     target_y: float,
+    wheelchair: bool,
 ) -> str:
     """
     Computes an detailed itinerary in `GeoJSON` format,

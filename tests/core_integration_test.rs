@@ -26,7 +26,7 @@ fn main_zheleznogorsk_test() {
         .expect("Failed to concstruct snapped point");
 
     let weights = single_source_shortest_path_weight(&transit_graph, &source, departure_time);
-    let path = detailed_itinerary(&transit_graph, &source, &target, departure_time);
+    let path = detailed_itinerary(&transit_graph, &source, &target, departure_time, false);
 
     let weight = weights.get(target.index()).expect("Node should be reached");
 

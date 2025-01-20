@@ -5,7 +5,12 @@ use serde_json::{json, map::Map};
 use crate::graph::{GraphEdge, Trip};
 
 impl GraphEdge {
-    pub(crate) fn calculate_itinerary(&self, current_time: u32, geometry: LineString) -> Segment {
+    pub(crate) fn calculate_itinerary(
+        &self,
+        current_time: u32,
+        geometry: LineString,
+        wheelchair: bool,
+    ) -> Segment {
         match self {
             Self::Transit(transit_edge) => {
                 let trips = &transit_edge.edge_trips;
@@ -13,7 +18,12 @@ impl GraphEdge {
                     Ok(index) | Err(index) if index < trips.len() => {
                         let trip = &trips[index];
 
-                        let weight = f64::from(trips[index].arrival_time - current_time);
+                        // Skip trips that are not wheelchair accessible if wheelchair is required
+                        if !trip.wheelchair_accessible && wheelchair {
+                            return Segment::NoService;
+                        }
+
+                        let weight = f64::from(trip.arrival_time - current_time);
 
                         Segment::Transit {
                             trip,

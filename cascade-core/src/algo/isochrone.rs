@@ -1,4 +1,4 @@
-use geo::{Geometry, LineString, MultiPolygon};
+use geo::{Geometry, MultiPolygon};
 use geojson::{de::deserialize_geometry, ser::serialize_geometry};
 use geos::{Geom, Geometry as GeosGeometry, GeometryTypes};
 use hashbrown::HashSet;
@@ -30,7 +30,6 @@ fn isochrone_internal(
         .filter_map(|weight| {
             weight
                 .geometry()
-                .map(|line| LineString::new([line.start, line.end].into()))
                 .and_then(|line| GeosGeometry::try_from(line).ok())
                 .and_then(|geom: GeosGeometry| geom.buffer(buffer_radius, 2).ok())
                 .filter(|buffer| buffer.geometry_type() == GeometryTypes::Polygon)

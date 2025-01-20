@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use geo::Line;
+use geo::LineString;
 use hashbrown::HashMap;
 use osm4routing;
 use petgraph::graph::DiGraph;
@@ -50,15 +50,11 @@ pub(crate) fn create_graph(filename: impl AsRef<Path>) -> Result<TransitGraph, E
             .get(&edge.target)
             .ok_or(Error::MissingKey(edge.target))?;
 
-        let mut geometry = None;
-
-        if let Some(first_point) = edge.geometry.first() {
-            // If there is first point, there guaranteed to be a last point, so `unwrap` wont panic
-            geometry = Some(Line::new(*first_point, *edge.geometry.last().unwrap()));
-        }
+        let edge_weight = edge.length();
+        let geometry: Option<LineString<f64>> = Some(edge.geometry.into());
 
         let edge_type = GraphEdge::Walk(WalkEdge {
-            edge_weight: edge.length(),
+            edge_weight,
             geometry,
         });
 

@@ -46,6 +46,7 @@ fn detailed_itinerary_internal(
     start: NodeIndex,
     target: NodeIndex,
     start_time: u32,
+    wheelchair: bool,
 ) -> Itinerary {
     let mut visited = HashSet::new();
     let mut scores: HashMap<NodeIndex, f64> =
@@ -70,18 +71,21 @@ fn detailed_itinerary_internal(
             let current_node = edge.source();
             let next_node = edge.target();
 
-            let edge_geometry = line_string![
-                Coord::from(*graph.node_weight(current_node).unwrap().geometry()),
-                Coord::from(*graph.node_weight(next_node).unwrap().geometry())
-            ];
-
             if visited.contains(&next_node) {
                 continue;
             }
 
-            let segment = edge
-                .weight()
-                .calculate_itinerary(current_time, edge_geometry);
+            let edge = edge.weight();
+
+            let edge_geometry = if let Some(geometry) = edge.geometry() {
+                geometry.clone()
+            } else {
+                let source = graph.node_weight(current_node).unwrap().geometry();
+                let target = graph.node_weight(next_node).unwrap().geometry();
+                line_string![Coord::from(*source), Coord::from(*target)]
+            };
+
+            let segment = edge.calculate_itinerary(current_time, edge_geometry, wheelchair);
 
             if matches!(segment, Segment::NoService) {
                 continue;
@@ -150,8 +154,15 @@ pub fn detailed_itinerary<'a, 'b>(
     start: &'b SnappedPoint,
     target: &'b SnappedPoint,
     start_time: u32,
+    wheelchair: bool,
 ) -> Itinerary<'a> {
-    let result = detailed_itinerary_internal(graph, *start.index(), *target.index(), start_time);
+    let result = detailed_itinerary_internal(
+        graph,
+        *start.index(),
+        *target.index(),
+        start_time,
+        wheelchair,
+    );
 
     result
 }

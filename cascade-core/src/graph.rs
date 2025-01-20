@@ -19,7 +19,7 @@ use std::fmt::{Debug, Display};
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 
-use geo::{Line, Point};
+use geo::{LineString, Point};
 use hashbrown::HashSet;
 use osm4routing::NodeId;
 use petgraph::graph::DiGraph;
@@ -237,10 +237,10 @@ pub struct TransitEdge {
 
 /// Edge representing a pedestrian connection
 /// `edge_weight` is the weight of the edge in seconds
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct WalkEdge {
     pub(crate) edge_weight: f64,
-    pub(crate) geometry: Option<Line>,
+    pub(crate) geometry: Option<LineString<f64>>,
 }
 
 /// Enum representing the type of edge in the graph
@@ -271,9 +271,9 @@ impl GraphEdge {
         }
     }
 
-    pub(crate) fn geometry(&self) -> Option<Line> {
+    pub(crate) fn geometry(&self) -> Option<&LineString> {
         match self {
-            Self::Walk(walk_edge) => walk_edge.geometry,
+            Self::Walk(walk_edge) => walk_edge.geometry.as_ref(),
             _ => None,
         }
     }
