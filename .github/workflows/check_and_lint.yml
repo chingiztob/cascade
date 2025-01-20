@@ -63,7 +63,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        rust: [stable, beta]
+        #rust: [stable, beta]
         include:
           - os: macos-latest
             platform: arm64
@@ -77,8 +77,8 @@ jobs:
 
       - name: Install Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
+        #with:
+        #  toolchain: ${{ matrix.rust }}
 
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2

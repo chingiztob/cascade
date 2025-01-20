@@ -144,3 +144,137 @@ impl<'a> Itinerary<'a> {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::graph::{TransitEdge, WalkEdge};
+
+    #[test]
+    fn test_itinerary_duration() {
+        let trip = Trip {
+            route_id: "route_1".to_string(),
+            departure_time: 1000,
+            arrival_time: 1100,
+            wheelchair_accessible: true,
+        };
+
+        let segment1 = Segment::Transit {
+            trip: &trip,
+            weight: 100.0,
+            geometry: None,
+        };
+
+        let segment2 = Segment::Pedestrian {
+            weight: 50.0,
+            geometry: None,
+        };
+
+        let mut itinerary = Itinerary::new();
+        itinerary.push(segment1);
+        itinerary.push(segment2);
+
+        let tolerance = 1e-6;
+        assert!((itinerary.duration() - 150.0).abs() < tolerance);
+    }
+
+    #[test]
+    fn test_itinerary_to_geojson() {
+        let trip = Trip {
+            route_id: "route_1".to_string(),
+            departure_time: 1000,
+            arrival_time: 1100,
+            wheelchair_accessible: true,
+        };
+
+        let segment1 = Segment::Transit {
+            trip: &trip,
+            weight: 100.0,
+            geometry: None,
+        };
+
+        let segment2 = Segment::Pedestrian {
+            weight: 50.0,
+            geometry: None,
+        };
+
+        let mut itinerary = Itinerary::new();
+        itinerary.push(segment1);
+        itinerary.push(segment2);
+
+        let geojson = itinerary.to_geojson();
+        if let geojson::GeoJson::FeatureCollection(fc) = geojson {
+            assert_eq!(fc.features.len(), 2);
+            assert_eq!(
+                fc.features[0].properties.as_ref().unwrap()["type"],
+                "Transit"
+            );
+            assert_eq!(
+                fc.features[1].properties.as_ref().unwrap()["type"],
+                "Pedestrian"
+            );
+        } else {
+            panic!("Expected FeatureCollection");
+        }
+    }
+
+    #[test]
+    fn test_calculate_itinerary_transit() {
+        let trip = Trip {
+            route_id: "route_1".to_string(),
+            departure_time: 1000,
+            arrival_time: 1100,
+            wheelchair_accessible: true,
+        };
+
+        let transit_edge = GraphEdge::Transit(TransitEdge {
+            edge_trips: vec![trip],
+            geometry: None,
+        });
+
+        let segment = transit_edge.calculate_itinerary(900, None, false);
+        if let Segment::Transit { weight, .. } = segment {
+            let tolerance = 1e-6;
+            assert!((weight - 200.0).abs() < tolerance);
+        } else {
+            panic!("Expected Transit segment");
+        }
+    }
+
+    #[test]
+    fn test_calculate_itinerary_no_service() {
+        let trip = Trip {
+            route_id: "route_1".to_string(),
+            departure_time: 1000,
+            arrival_time: 1100,
+            wheelchair_accessible: false,
+        };
+
+        let transit_edge = GraphEdge::Transit(TransitEdge {
+            edge_trips: vec![trip],
+            geometry: None,
+        });
+
+        let segment = transit_edge.calculate_itinerary(900, None, true);
+        assert!(matches!(segment, Segment::NoService));
+
+        let segment = transit_edge.calculate_itinerary(1500, None, false);
+        assert!(matches!(segment, Segment::NoService));
+    }
+
+    #[test]
+    fn test_calculate_itinerary_pedestrian() {
+        let walk_edge = GraphEdge::Walk(WalkEdge {
+            edge_weight: 50.0,
+            geometry: None,
+        });
+
+        let segment = walk_edge.calculate_itinerary(0, None, false);
+        if let Segment::Pedestrian { weight, .. } = segment {
+            let tolerance = 1e-6;
+            assert!((weight - 50.0).abs() < tolerance);
+        } else {
+            panic!("Expected Pedestrian segment");
+        }
+    }
+}
