@@ -124,7 +124,6 @@ impl TransitGraph {
     /// Add transit data from another GTFS feed on top of existing graph.
     /// Currntly uses straightforward logic with addition of all stops and
     /// transit edges to initial graph.
-    #[warn(unstable_features)]
     pub fn extend_with_transit(&mut self, feed_args: &FeedArgs) -> Result<(), Error> {
         let (stops_df, stop_times_df) = loaders::prepare_dataframes(
             &feed_args.gtfs_path,
