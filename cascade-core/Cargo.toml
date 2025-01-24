@@ -10,7 +10,7 @@ polars = { version = "0.45.1", default-features = false, features = [
     "csv",
 ] }
 petgraph = "0.6.5"
-rustworkx-core = "0.15.1"
+rustworkx-core = "0.16.0"
 geo = { version = "0.29", features = ["use-serde"] }
 geos = { version = "9.1.1", features = [
     "geo",
