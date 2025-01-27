@@ -119,6 +119,7 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
         ["service_id"],
         ["service_id"],
         JoinArgs::new(JoinType::Inner),
+        None,
     )?;
 
     // Filter stop_times by the valid trip_ids from the filtered trips_df
@@ -127,6 +128,7 @@ pub(crate) fn prepare_dataframes<P: AsRef<Path>>(
         ["trip_id"],
         ["trip_id"],
         JoinArgs::new(JoinType::Inner),
+        None,
     )?;
 
     let filtered_stop_times_df =

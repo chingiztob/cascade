@@ -5,12 +5,12 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-polars = { version = "0.45.1", default-features = false, features = [
+polars = { version = "0.46", default-features = false, features = [
     "cross_join",
     "csv",
 ] }
-petgraph = "0.6.5"
-rustworkx-core = "0.15.1"
+petgraph = "0.7"
+rustworkx-core = "0.16"
 geo = { version = "0.29", features = ["use-serde"] }
 geos = { version = "9.1.1", features = [
     "geo",
