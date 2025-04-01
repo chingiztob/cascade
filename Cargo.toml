@@ -14,7 +14,7 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.23", features = ["extension-module", "hashbrown"] }
+pyo3 = { version = "0.24", features = ["extension-module", "hashbrown"] }
 hashbrown = "0.15.2"
 geo = "0.29"
 geojson = "0.24.0"
